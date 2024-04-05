@@ -1,10 +1,9 @@
 //! Filters items by quarters and years
 
-use std::fmt::Display;
-
 use chrono::{Datelike, Local, NaiveDate};
 
 use crate::income::DescribedIncome;
+use crate::time::Quarter;
 
 #[derive(Debug, Clone, Copy, Default, PartialEq)]
 pub enum YearFilter {
@@ -24,23 +23,14 @@ pub enum QuarterFilter {
     CurrentQuarterYtd,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Eq)]
-pub enum Quarter {
-    Q1,
-    Q2,
-    Q3,
-    Q4,
-}
-
 impl QuarterFilter {
     pub fn filter(&self, date: &NaiveDate) -> bool {
         match self {
-            QuarterFilter::OneQuarter(quarter) => *quarter == Quarter::of_date(date),
-            QuarterFilter::Ytd(quarter) => *quarter >= Quarter::of_date(date),
+            QuarterFilter::OneQuarter(quarter) => *quarter == Quarter::from(date),
+            QuarterFilter::Ytd(quarter) => *quarter >= Quarter::from(date),
             QuarterFilter::AllQuarters => true,
-            QuarterFilter::CurrentQuarter => Quarter::current() == Quarter::of_date(date),
-            QuarterFilter::CurrentQuarterYtd => Quarter::current() >= Quarter::of_date(date),
-            _ => true,
+            QuarterFilter::CurrentQuarter => Quarter::current() == Quarter::from(date),
+            QuarterFilter::CurrentQuarterYtd => Quarter::current() >= Quarter::from(date),
         }
     }
 
@@ -55,7 +45,6 @@ impl YearFilter {
             YearFilter::OneYear(year) => *year == date.year(),
             YearFilter::AnyYear => true,
             YearFilter::CurrentYear => Local::now().naive_local().year() == date.year(),
-            _ => true,
         }
     }
 
@@ -64,83 +53,9 @@ impl YearFilter {
     }
 }
 
-impl Quarter {
-    pub fn of_date(date: &NaiveDate) -> Self {
-        let month = date.month();
-        match month {
-            1..=3 => Self::Q1,
-            4..=6 => Self::Q2,
-            7..=9 => Self::Q3,
-            10..=12 => Self::Q4,
-            _ => unreachable!(),
-        }
-    }
-
-    fn current() -> Self {
-        let date = Local::now().naive_local().date();
-        Self::of_date(&date)
-    }
-
-    fn as_int(&self) -> usize {
-        match self {
-            Self::Q1 => 1,
-            Self::Q2 => 2,
-            Self::Q3 => 3,
-            Self::Q4 => 4,
-        }
-    }
-}
-
-impl Ord for Quarter {
-    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
-        self.as_int().cmp(&other.as_int())
-    }
-}
-
-impl Display for Quarter {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "Q{}", self.as_int())
-    }
-}
-
-impl TryFrom<u32> for Quarter {
-    type Error = anyhow::Error;
-
-    fn try_from(value: u32) -> Result<Self, Self::Error> {
-        match value {
-            1 => Ok(Self::Q1),
-            2 => Ok(Self::Q2),
-            3 => Ok(Self::Q3),
-            4 => Ok(Self::Q4),
-            _ => anyhow::bail!("Invalid quarter number"),
-        }
-    }
-}
-
 #[cfg(test)]
 mod tests {
-
     use super::*;
-
-    #[test]
-    fn detect_quarter() {
-        assert_eq!(
-            Quarter::of_date(&NaiveDate::from_ymd_opt(2024, 2, 29).unwrap()),
-            Quarter::Q1
-        );
-        assert_eq!(
-            Quarter::of_date(&NaiveDate::from_ymd_opt(2024, 4, 1).unwrap()),
-            Quarter::Q2
-        );
-        assert_eq!(
-            Quarter::of_date(&NaiveDate::from_ymd_opt(2024, 7, 1).unwrap()),
-            Quarter::Q3
-        );
-        assert_eq!(
-            Quarter::of_date(&NaiveDate::from_ymd_opt(2024, 12, 31).unwrap()),
-            Quarter::Q4
-        );
-    }
 
     #[test]
     fn filter_by_exact_quarter() {
@@ -179,13 +94,5 @@ mod tests {
             .collect::<Vec<_>>();
 
         assert_eq!(&filtered, &[&q1_date, &q2_date, &q3_date]);
-    }
-
-    #[test]
-    fn compare_quarters() {
-        assert!(Quarter::Q1 < Quarter::Q2);
-        assert!(Quarter::Q2 < Quarter::Q3);
-        assert!(Quarter::Q3 < Quarter::Q4);
-        assert!(Quarter::Q2 == Quarter::Q2);
     }
 }

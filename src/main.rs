@@ -4,14 +4,16 @@ use std::path::PathBuf;
 
 use anyhow::Context;
 use clap::{Parser, Subcommand};
-use date_filter::{Quarter, QuarterFilter, YearFilter};
+use date_filter::{QuarterFilter, YearFilter};
 use income::DescribedIncome;
 use report::generate_report;
+use time::Quarter;
 
 mod date_filter;
 mod income;
 mod report;
 mod taxer;
+mod time;
 mod universalbank;
 
 #[derive(Debug, Parser)]

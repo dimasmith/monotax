@@ -2,7 +2,8 @@
 
 use chrono::{Datelike, NaiveDate};
 
-use crate::{date_filter::Quarter, income::Income};
+use crate::income::Income;
+use crate::time::Quarter;
 
 pub mod console;
 
@@ -46,7 +47,7 @@ impl QuarterReport {
     fn income(income: &Income, tax: f64) -> Self {
         let date = income.date();
         let year = date.year();
-        let quarter = Quarter::of_date(&date);
+        let quarter = Quarter::from(&date);
         let amount = income.amount();
         let tax = amount * tax;
         Self {
@@ -61,7 +62,7 @@ impl QuarterReport {
 
     fn is_for_date(&self, date: &NaiveDate) -> bool {
         let year = date.year();
-        let quarter = Quarter::of_date(&date);
+        let quarter = Quarter::from(date);
         return self.year == year && self.quarter == quarter;
     }
 
@@ -192,34 +193,33 @@ mod tests {
     }
 
     #[test]
-        fn cross_year_report() {
-            let tax = 0.1;
-            let dec_income = Income::new(NaiveDate::from_ymd_opt(2023, 12, 5).unwrap(), 1000.0);
-            let jan_income = Income::new(NaiveDate::from_ymd_opt(2024, 1, 1).unwrap(), 1500.0);
-            
-    
-            let report = generate_report(&mut [dec_income, jan_income], tax);
-    
-            assert_eq!(
-                &report,
-                &[
-                    QuarterReport {
-                        year: 2023,
-                        quarter: Quarter::Q4,
-                        total_income: 1000.0,
-                        cumulative_income: 1000.0,
-                        total_tax: 100.0,
-                        cumulative_tax: 100.0,
-                    },
-                    QuarterReport {
-                        year: 2024,
-                        quarter: Quarter::Q1,
-                        total_income: 1500.0,
-                        cumulative_income: 1500.0,
-                        total_tax: 150.0,
-                        cumulative_tax: 150.0,
-                    }
-                ]
-            )
-        }
+    fn cross_year_report() {
+        let tax = 0.1;
+        let dec_income = Income::new(NaiveDate::from_ymd_opt(2023, 12, 5).unwrap(), 1000.0);
+        let jan_income = Income::new(NaiveDate::from_ymd_opt(2024, 1, 1).unwrap(), 1500.0);
+
+        let report = generate_report(&mut [dec_income, jan_income], tax);
+
+        assert_eq!(
+            &report,
+            &[
+                QuarterReport {
+                    year: 2023,
+                    quarter: Quarter::Q4,
+                    total_income: 1000.0,
+                    cumulative_income: 1000.0,
+                    total_tax: 100.0,
+                    cumulative_tax: 100.0,
+                },
+                QuarterReport {
+                    year: 2024,
+                    quarter: Quarter::Q1,
+                    total_income: 1500.0,
+                    cumulative_income: 1500.0,
+                    total_tax: 150.0,
+                    cumulative_tax: 150.0,
+                }
+            ]
+        )
+    }
 }
