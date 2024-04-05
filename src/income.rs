@@ -1,4 +1,4 @@
-use chrono::NaiveDate;
+use chrono::{Datelike, NaiveDate};
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Income {
@@ -10,6 +10,17 @@ pub trait DescribedIncome {
     fn income(&self) -> Income;
     fn tax_number(&self) -> String;
     fn comment(&self) -> String;
+    fn quarter(&self) -> u32 {
+        let date = self.income().date();
+        let month = date.month();
+        match month {
+            1..=3 => 1,
+            4..=6 => 2,
+            7..=9 => 3,
+            10..=12 => 4,
+            _ => unreachable!(),
+        }
+    }
 }
 
 impl Income {

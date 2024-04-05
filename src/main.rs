@@ -5,6 +5,8 @@ use std::path::PathBuf;
 use anyhow::Context;
 use clap::{Parser, Subcommand};
 
+use crate::income::DescribedIncome;
+
 mod income;
 mod taxer;
 mod universalbank;
@@ -16,6 +18,10 @@ struct Cli {
 
     /// Path to the statement csv file
     statement: PathBuf,
+
+    /// A qarter to filter incomes. Optional.
+    #[clap(short, long)]
+    quarter: Option<u32>,
 }
 
 #[derive(Debug, Subcommand)]
@@ -30,7 +36,13 @@ fn main() -> anyhow::Result<()> {
     let stmt_file = File::open(stmt_path)
         .with_context(|| format!("open statement file {}", stmt_path.display()))?;
 
-    let incomes = universalbank::read_incomes(stmt_file)?;
+    let mut incomes = universalbank::read_incomes(stmt_file)?;
+    if let Some(quarter) = cli.quarter {
+        incomes = incomes
+            .into_iter()
+            .filter(|income| income.quarter() == quarter)
+            .collect::<Vec<_>>();
+    }
 
     match cli.command {
         Command::TaxerCsv { csv_file } => {
