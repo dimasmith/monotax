@@ -10,10 +10,10 @@ pub struct TaxerIncome {
     comment: String,
 }
 
-pub fn export_csv<W, I>(income: &[I], writer: W) -> anyhow::Result<()>
+pub fn export_csv<W, D>(income: &[D], writer: W) -> anyhow::Result<()>
 where
     W: Write,
-    I: DescribedIncome,
+    D: DescribedIncome,
 {
     let taxer_records: Vec<TaxerIncome> = income.iter().map(TaxerIncome::from_income).collect();
     let mut csv_writer = csv::WriterBuilder::new().from_writer(writer);

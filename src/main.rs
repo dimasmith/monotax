@@ -4,9 +4,9 @@ use std::path::PathBuf;
 
 use anyhow::Context;
 use clap::{Parser, Subcommand};
+use date_filter::{Quarter, QuarterFilter, YearFilter};
 
-use crate::income::DescribedIncome;
-
+mod date_filter;
 mod income;
 mod taxer;
 mod universalbank;
@@ -36,13 +36,17 @@ fn main() -> anyhow::Result<()> {
     let stmt_file = File::open(stmt_path)
         .with_context(|| format!("open statement file {}", stmt_path.display()))?;
 
-    let mut incomes = universalbank::read_incomes(stmt_file)?;
-    if let Some(quarter) = cli.quarter {
-        incomes = incomes
-            .into_iter()
-            .filter(|income| income.quarter() == quarter)
-            .collect::<Vec<_>>();
-    }
+    let quarter_filter = match cli.quarter {
+        Some(quarter) => QuarterFilter::OneQuarter(Quarter::try_from(quarter)?),
+        None => QuarterFilter::AllQuarters,
+    };
+    let year_filter = YearFilter::CurrentYear;
+
+    let incomes = universalbank::read_incomes(stmt_file)?
+        .into_iter()
+        .filter(|income| year_filter.filter_income(income))
+        .filter(|income| quarter_filter.filter_income(income))
+        .collect::<Vec<_>>();
 
     match cli.command {
         Command::TaxerCsv { csv_file } => {

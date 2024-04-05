@@ -89,3 +89,17 @@ impl DescribedIncome for UnivesralBankIncome {
         self.comment.clone()
     }
 }
+
+impl DescribedIncome for &UnivesralBankIncome {
+    fn income(&self) -> Income {
+        self.income
+    }
+
+    fn tax_number(&self) -> String {
+        self.tax_number.clone()
+    }
+
+    fn comment(&self) -> String {
+        self.comment.clone()
+    }
+}
