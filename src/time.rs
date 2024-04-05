@@ -20,6 +20,10 @@ impl Quarter {
         Quarter::from(&date)
     }
 
+    pub fn of(date_ref: impl AsRef<NaiveDate>) -> Self {
+        Quarter::from(date_ref.as_ref())
+    }
+
     fn index(&self) -> usize {
         match self {
             Self::Q1 => 1,
@@ -72,6 +76,8 @@ impl TryFrom<u32> for Quarter {
 #[cfg(test)]
 mod tests {
 
+    use crate::income::Income;
+
     use super::*;
 
     #[test]
@@ -110,5 +116,13 @@ mod tests {
         assert!(Quarter::Q2 < Quarter::Q3);
         assert!(Quarter::Q3 < Quarter::Q4);
         assert!(Quarter::Q2 == Quarter::Q2);
+    }
+
+    #[test]
+    fn income_quarter() {
+        let income = Income::new(NaiveDate::from_ymd_opt(2024, 2, 29).unwrap(), 1000.0);
+        let quarter = Quarter::of(&income);
+
+        assert_eq!(quarter, Quarter::Q1);
     }
 }

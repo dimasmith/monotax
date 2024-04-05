@@ -47,7 +47,7 @@ impl QuarterReport {
     fn income(income: &Income, tax: f64) -> Self {
         let date = income.date();
         let year = date.year();
-        let quarter = Quarter::from(&date);
+        let quarter = Quarter::of(&income);
         let amount = income.amount();
         let tax = amount * tax;
         Self {
@@ -66,17 +66,14 @@ impl QuarterReport {
         return self.year == year && self.quarter == quarter;
     }
 
-    fn add_income(&mut self, income: &Income, tax: f64) {
+    fn add_income(&mut self, income: &Income, tax_rate: f64) {
         assert!(
             self.is_for_date(&income.date()),
             "income is for incorrect report"
         );
         let amount = income.amount();
-        let tax_amount = amount * tax;
-        self.total_income += amount;
-        self.cumulative_income += amount;
-        self.total_tax += tax_amount;
-        self.cumulative_tax += tax_amount;
+        self.add_amount(amount);        
+        self.add_tax(amount, tax_rate)
     }
 
     fn add_cumulative_values(&mut self, prev: &QuarterReport) {
@@ -85,6 +82,17 @@ impl QuarterReport {
         }
         self.cumulative_income += prev.cumulative_income;
         self.cumulative_tax += prev.cumulative_tax;
+    }
+
+    fn add_amount(&mut self, amount: f64) {
+        self.total_income += amount;
+        self.cumulative_income += amount;
+    }
+
+    fn add_tax(&mut self, amount: f64, tax_rate: f64) {
+        let tax_amount = amount * tax_rate;
+        self.total_tax += tax_amount;
+        self.cumulative_tax += tax_amount;
     }
 }
 

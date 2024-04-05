@@ -36,3 +36,9 @@ impl Income {
         self.amount
     }
 }
+
+impl AsRef<NaiveDate> for Income {
+    fn as_ref(&self) -> &NaiveDate {
+        &self.date
+    }
+}
