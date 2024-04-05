@@ -1,12 +1,9 @@
 use std::fs::File;
-use std::io::{prelude::*, stdout, BufReader, BufWriter};
+use std::io::{prelude::*, stdout, BufWriter};
 use std::path::PathBuf;
 
 use anyhow::Context;
 use clap::{Parser, Subcommand};
-use encoding_rs::WINDOWS_1251;
-use encoding_rs_rw::DecodingReader;
-use universalbank::UnivesralBankIncome;
 
 mod income;
 mod taxer;
@@ -30,22 +27,10 @@ enum Command {
 fn main() -> anyhow::Result<()> {
     let cli = Cli::parse();
     let stmt_path = cli.statement.as_path();
-    let stmt_file = BufReader::new(
-        std::fs::File::open(stmt_path)
-            .with_context(|| format!("open statement file {}", stmt_path.display()))?,
-    );
-    let mut reader = DecodingReader::new(stmt_file, WINDOWS_1251.new_decoder());
-    let mut csv = csv::ReaderBuilder::new()
-        .delimiter(b';')
-        .flexible(true)
-        .from_reader(&mut reader);
+    let stmt_file = File::open(stmt_path)
+        .with_context(|| format!("open statement file {}", stmt_path.display()))?;
 
-    let mut incomes = vec![];
-    for record in csv.records() {
-        let record = record?;
-        let income = UnivesralBankIncome::try_from(record)?;
-        incomes.push(income);
-    }
+    let incomes = universalbank::read_incomes(stmt_file)?;
 
     match cli.command {
         Command::TaxerCsv { csv_file } => {

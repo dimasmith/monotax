@@ -1,6 +1,10 @@
+use std::io::{BufReader, Read};
+
 use anyhow::Context;
 use chrono::NaiveDate;
 use csv::StringRecord;
+use encoding_rs::WINDOWS_1251;
+use encoding_rs_rw::DecodingReader;
 
 use crate::income::{DescribedIncome, Income};
 
@@ -25,6 +29,24 @@ const DATE_COLUMN: usize = 12;
 const AMOUNT_COLUMN: usize = 14;
 const REGISTRATION_NO_COLUMN: usize = 0;
 const DESCRIPTION_COLUMN: usize = 15;
+
+pub fn read_incomes<R>(reader: R) -> anyhow::Result<Vec<impl DescribedIncome>>
+where
+    R: Read,
+{
+    let mut reader = DecodingReader::new(BufReader::new(reader), WINDOWS_1251.new_decoder());
+    let mut csv_reader = csv::ReaderBuilder::new()
+        .delimiter(b';')
+        .flexible(true)
+        .from_reader(&mut reader);
+    let mut incomes = Vec::new();
+    for result in csv_reader.records() {
+        let record = result.context("failed to read record")?;
+        let income = UnivesralBankIncome::try_from(record)?;
+        incomes.push(income);
+    }
+    Ok(incomes)
+}
 
 impl TryFrom<StringRecord> for UnivesralBankIncome {
     type Error = anyhow::Error;
