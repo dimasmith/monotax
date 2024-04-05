@@ -2,22 +2,20 @@ use anyhow::Context;
 use chrono::NaiveDate;
 use csv::StringRecord;
 
-use crate::income::Income;
+use crate::income::{DescribedIncome, Income};
 
 #[derive(Debug, Clone)]
 pub struct UnivesralBankIncome {
+    income: Income,
     tax_number: String,
-    date: NaiveDate,
-    amount: f64,
     comment: String,
 }
 
 impl UnivesralBankIncome {
-    pub fn new(tax_number: String, date: NaiveDate, amount: f64, comment: String) -> Self {
+    pub fn new(income: Income, tax_number: String, comment: String) -> Self {
         Self {
+            income,
             tax_number,
-            date,
-            amount,
             comment,
         }
     }
@@ -38,34 +36,31 @@ impl TryFrom<StringRecord> for UnivesralBankIncome {
         let amount = value
             .get(AMOUNT_COLUMN)
             .ok_or_else(|| anyhow::anyhow!("amount not found"))?;
-        let registration_no = value
+        let tax_number = value
             .get(REGISTRATION_NO_COLUMN)
             .ok_or_else(|| anyhow::anyhow!("registration_no not found"))?;
-        let description = value.get(DESCRIPTION_COLUMN).unwrap_or_default();
+        let comment = value.get(DESCRIPTION_COLUMN).unwrap_or_default();
 
         let date = NaiveDate::parse_from_str(date, "%d.%m.%Y").context("failed to parse date")?;
         let amount = amount.parse().context("failed to parse amount")?;
 
-        Ok(Self {
-            tax_number: registration_no.to_owned(),
-            date,
-            amount,
-            comment: description.to_owned(),
-        })
+        let income = Income::new(date, amount);
+
+        Ok(UnivesralBankIncome::new(
+            income,
+            tax_number.to_owned(),
+            comment.to_owned(),
+        ))
     }
 }
 
-impl Income for UnivesralBankIncome {
+impl DescribedIncome for UnivesralBankIncome {
+    fn income(&self) -> Income {
+        self.income
+    }
+
     fn tax_number(&self) -> String {
         self.tax_number.clone()
-    }
-
-    fn date(&self) -> NaiveDate {
-        self.date
-    }
-
-    fn amount(&self) -> f64 {
-        self.amount
     }
 
     fn comment(&self) -> String {

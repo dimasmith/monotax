@@ -3,7 +3,7 @@ use std::io::{prelude::*, stdout, BufReader, BufWriter};
 use std::path::PathBuf;
 
 use anyhow::Context;
-use clap::Parser;
+use clap::{Parser, Subcommand};
 use encoding_rs::WINDOWS_1251;
 use encoding_rs_rw::DecodingReader;
 use universalbank::UnivesralBankIncome;
@@ -14,10 +14,17 @@ mod universalbank;
 
 #[derive(Debug, Parser)]
 struct Cli {
+    #[clap(subcommand)]
+    command: Command,
+
     /// Path to the statement csv file
     statement: PathBuf,
-    /// Path to the generated csv in taxer format
-    taxer_csv: Option<PathBuf>,
+}
+
+#[derive(Debug, Subcommand)]
+enum Command {
+    /// Export statement csv to taxer csv
+    TaxerCsv { csv_file: Option<PathBuf> },
 }
 
 fn main() -> anyhow::Result<()> {
@@ -40,18 +47,14 @@ fn main() -> anyhow::Result<()> {
         incomes.push(income);
     }
 
-    let writer = match cli.taxer_csv {
-        Some(path) => {
-            let file = File::create(path).with_context(|| format!("create taxer csv file"))?;
-            Box::new(BufWriter::new(file)) as Box<dyn Write>
+    match cli.command {
+        Command::TaxerCsv { csv_file } => {
+            let writer: Box<dyn Write> = match csv_file {
+                Some(path) => Box::new(BufWriter::new(File::create(path)?)),
+                None => Box::new(BufWriter::new(stdout())),
+            };
+            taxer::export_csv(&incomes, writer)?;
         }
-        None => Box::new(BufWriter::new(stdout())) as Box<dyn Write>,
-    };
-    let mut csv_writer = csv::WriterBuilder::new().from_writer(writer);
-
-    for income in &incomes {
-        let taxer_income = taxer::TaxerIncome::from_income(income);
-        taxer_income.write(&mut csv_writer)?;
     }
 
     Ok(())
