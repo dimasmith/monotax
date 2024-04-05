@@ -5,9 +5,12 @@ use std::path::PathBuf;
 use anyhow::Context;
 use clap::{Parser, Subcommand};
 use date_filter::{Quarter, QuarterFilter, YearFilter};
+use income::DescribedIncome;
+use report::generate_report;
 
 mod date_filter;
 mod income;
+mod report;
 mod taxer;
 mod universalbank;
 
@@ -28,6 +31,8 @@ struct Cli {
 enum Command {
     /// Export statement csv to taxer csv
     TaxerCsv { csv_file: Option<PathBuf> },
+    /// Generates quaretly tax report of incomes.
+    Report,
 }
 
 fn main() -> anyhow::Result<()> {
@@ -55,6 +60,11 @@ fn main() -> anyhow::Result<()> {
                 None => Box::new(BufWriter::new(stdout())),
             };
             taxer::export_csv(&incomes, writer)?;
+        }
+        Command::Report => {
+            let mut inc = incomes.iter().map(|i| i.income()).collect::<Vec<_>>();
+            let report = generate_report(&mut inc, 0.05);
+            report::console::pretty_print(&report, stdout())?;
         }
     }
 

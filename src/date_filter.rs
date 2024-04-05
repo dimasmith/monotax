@@ -1,5 +1,7 @@
 //! Filters items by quarters and years
 
+use std::fmt::Display;
+
 use chrono::{Datelike, Local, NaiveDate};
 
 use crate::income::DescribedIncome;
@@ -63,7 +65,7 @@ impl YearFilter {
 }
 
 impl Quarter {
-    fn of_date(date: &NaiveDate) -> Self {
+    pub fn of_date(date: &NaiveDate) -> Self {
         let month = date.month();
         match month {
             1..=3 => Self::Q1,
@@ -92,6 +94,12 @@ impl Quarter {
 impl Ord for Quarter {
     fn cmp(&self, other: &Self) -> std::cmp::Ordering {
         self.as_int().cmp(&other.as_int())
+    }
+}
+
+impl Display for Quarter {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "Q{}", self.as_int())
     }
 }
 
