@@ -6,7 +6,7 @@ use csv::StringRecord;
 use encoding_rs::WINDOWS_1251;
 use encoding_rs_rw::DecodingReader;
 
-use crate::income::Income;
+use crate::{filter::IncomeFilter, income::Income};
 
 #[derive(Debug, Clone)]
 pub struct UnivesralBankIncome {
@@ -29,7 +29,7 @@ const DATE_COLUMN: usize = 12;
 const AMOUNT_COLUMN: usize = 14;
 const DESCRIPTION_COLUMN: usize = 15;
 
-pub fn read_incomes<R>(reader: R) -> anyhow::Result<Vec<Income>>
+pub fn read_incomes<R>(reader: R, filter: &IncomeFilter) -> anyhow::Result<Vec<Income>>
 where
     R: Read,
 {
@@ -42,7 +42,9 @@ where
     for result in csv_reader.records() {
         let record = result.context("failed to read record")?;
         let income = income_from_csv(&record)?;
-        incomes.push(income);
+        if filter.test(&income) {
+            incomes.push(income);
+        }
     }
     Ok(incomes)
 }

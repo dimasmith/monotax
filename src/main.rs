@@ -4,12 +4,13 @@ use std::path::PathBuf;
 
 use anyhow::Context;
 use clap::{Parser, Subcommand};
-use date_filter::{QuarterFilter, YearFilter};
+use filter::date::{QuarterFilter, YearFilter};
+use filter::{IncomeFilter, IncomePredicate};
 use report::generate_report;
 use time::Quarter;
 
 mod config;
-mod date_filter;
+mod filter;
 mod income;
 mod report;
 mod taxer;
@@ -43,17 +44,9 @@ fn main() -> anyhow::Result<()> {
     let stmt_file = File::open(stmt_path)
         .with_context(|| format!("open statement file {}", stmt_path.display()))?;
 
-    let quarter_filter = match cli.quarter {
-        Some(quarter) => QuarterFilter::OneQuarter(Quarter::try_from(quarter)?),
-        None => QuarterFilter::AllQuarters,
-    };
-    let year_filter = YearFilter::CurrentYear;
-
-    let mut incomes = universalbank::read_incomes(stmt_file)?
-        .into_iter()
-        .filter(|income| year_filter.filter_income(income))
-        .filter(|income| quarter_filter.filter_income(income))
-        .collect::<Vec<_>>();
+    
+    let filter = create_filters(&cli)?;
+    let mut incomes = universalbank::read_incomes(stmt_file, &filter)?;        
 
     let config = config::load_config()?;
     match cli.command {
@@ -71,4 +64,14 @@ fn main() -> anyhow::Result<()> {
     }
 
     Ok(())
+}
+
+fn create_filters(cli: &Cli) -> anyhow::Result<IncomeFilter> {
+    let quarter_filter = match cli.quarter {
+        Some(quarter) => QuarterFilter::OneQuarter(Quarter::try_from(quarter)?),
+        None => QuarterFilter::AllQuarters,
+    };
+    let year_filter = YearFilter::CurrentYear;
+    let predicates: Vec<Box<dyn IncomePredicate>> = vec![Box::new(year_filter), Box::new(quarter_filter)];
+    Ok(IncomeFilter::new(predicates))
 }

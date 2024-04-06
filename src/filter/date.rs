@@ -5,6 +5,8 @@ use chrono::{Datelike, Local, NaiveDate};
 use crate::income::Income;
 use crate::time::Quarter;
 
+use super::IncomePredicate;
+
 #[derive(Debug, Clone, Copy, Default, PartialEq)]
 pub enum YearFilter {
     OneYear(i32),
@@ -50,6 +52,18 @@ impl YearFilter {
 
     pub fn filter_income(&self, income: &Income) -> bool {
         self.filter(&income.date())
+    }
+}
+
+impl IncomePredicate for QuarterFilter {
+    fn test(&self, income: &Income) -> bool {
+        self.filter_income(income)
+    }
+}
+
+impl IncomePredicate for YearFilter {
+    fn test(&self, income: &Income) -> bool {
+        self.filter_income(income)
     }
 }
 
