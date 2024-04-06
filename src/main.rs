@@ -5,7 +5,6 @@ use std::path::PathBuf;
 use anyhow::Context;
 use clap::{Parser, Subcommand};
 use date_filter::{QuarterFilter, YearFilter};
-use income::DescribedIncome;
 use report::generate_report;
 use time::Quarter;
 
@@ -50,7 +49,7 @@ fn main() -> anyhow::Result<()> {
     };
     let year_filter = YearFilter::CurrentYear;
 
-    let incomes = universalbank::read_incomes(stmt_file)?
+    let mut incomes = universalbank::read_incomes(stmt_file)?
         .into_iter()
         .filter(|income| year_filter.filter_income(income))
         .filter(|income| quarter_filter.filter_income(income))
@@ -66,10 +65,7 @@ fn main() -> anyhow::Result<()> {
             taxer::export_csv(&incomes, &config.taxer, writer)?;
         }
         Command::Report => {
-            
-            let mut inc = incomes.iter().map(|i| i.income()).collect::<Vec<_>>();
-            // todo: replace with config
-            let report = generate_report(&mut inc, &config.tax);
+            let report = generate_report(&mut incomes, &config.tax);
             report::console::pretty_print(&report, stdout())?;
         }
     }

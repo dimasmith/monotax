@@ -2,7 +2,7 @@
 
 use chrono::{Datelike, Local, NaiveDate};
 
-use crate::income::DescribedIncome;
+use crate::income::Income;
 use crate::time::Quarter;
 
 #[derive(Debug, Clone, Copy, Default, PartialEq)]
@@ -34,8 +34,8 @@ impl QuarterFilter {
         }
     }
 
-    pub fn filter_income<T: DescribedIncome>(&self, income: &T) -> bool {
-        self.filter(&income.income().date())
+    pub fn filter_income(&self, income: &Income) -> bool {
+        self.filter(&income.date())
     }
 }
 
@@ -48,8 +48,8 @@ impl YearFilter {
         }
     }
 
-    pub fn filter_income<T: DescribedIncome>(&self, income: &T) -> bool {
-        self.filter(&income.income().date())
+    pub fn filter_income(&self, income: &Income) -> bool {
+        self.filter(&income.date())
     }
 }
 

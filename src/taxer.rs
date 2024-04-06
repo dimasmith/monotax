@@ -2,7 +2,7 @@ use std::io::Write;
 
 use csv::Writer;
 
-use crate::{config::TaxerImportConfig, income::{DescribedIncome, Income}};
+use crate::{config::TaxerImportConfig, income::Income};
 
 pub struct TaxerIncome {
     income: Income,
@@ -10,16 +10,18 @@ pub struct TaxerIncome {
     comment: String,
 }
 
-pub fn export_csv<W, D>(income: &[D], config: &TaxerImportConfig, writer: W) -> anyhow::Result<()>
+pub fn export_csv<W>(income: &[Income], config: &TaxerImportConfig, writer: W) -> anyhow::Result<()>
 where
     W: Write,
-    D: DescribedIncome,
 {
-    let taxer_records: Vec<TaxerIncome> = income.iter().map(|income| TaxerIncome {
-        income: income.income(),
-        tax_number: config.id.to_owned(),
-        comment: config.default_comment.to_owned()
-    }).collect();
+    let taxer_records: Vec<TaxerIncome> = income
+        .iter()
+        .map(|income| TaxerIncome {
+            income: income.clone(),
+            tax_number: config.id.to_owned(),
+            comment: config.default_comment.to_owned(),
+        })
+        .collect();
     let mut csv_writer = csv::WriterBuilder::new().from_writer(writer);
     for record in taxer_records {
         record.write(&mut csv_writer)?;
@@ -36,10 +38,6 @@ impl TaxerIncome {
         }
     }
 
-    pub fn from_income(income: &impl DescribedIncome) -> Self {
-        TaxerIncome::new(income.income(), income.tax_number(), income.comment())
-    }
-
     pub fn write<W>(&self, writer: &mut Writer<W>) -> anyhow::Result<()>
     where
         W: Write,
@@ -48,19 +46,5 @@ impl TaxerIncome {
         let amount = format!("{:.2}", self.income.amount());
         writer.write_record([&self.tax_number, &date, &amount, &self.comment])?;
         Ok(())
-    }
-}
-
-impl DescribedIncome for TaxerIncome {
-    fn income(&self) -> Income {
-        self.income
-    }
-
-    fn tax_number(&self) -> String {
-        self.tax_number.clone()
-    }
-
-    fn comment(&self) -> String {
-        self.comment.clone()
     }
 }
