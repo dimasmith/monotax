@@ -12,3 +12,9 @@ It can prepare import files for awesome Taxer service.
 - [x] Add application configuration holding Taxer metadata and tax rates.
 - [x] Use all date filtering options from CLI.
 - [x] Generate quarterly reports in CSV format.
+
+## Ideas
+
+- Implement GUI for the application.
+- Implement interactive CLI.
+
