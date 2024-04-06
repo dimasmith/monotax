@@ -2,7 +2,7 @@ use std::io::Write;
 
 use csv::Writer;
 
-use crate::income::{DescribedIncome, Income};
+use crate::{config::TaxerImportConfig, income::{DescribedIncome, Income}};
 
 pub struct TaxerIncome {
     income: Income,
@@ -10,12 +10,16 @@ pub struct TaxerIncome {
     comment: String,
 }
 
-pub fn export_csv<W, D>(income: &[D], writer: W) -> anyhow::Result<()>
+pub fn export_csv<W, D>(income: &[D], config: &TaxerImportConfig, writer: W) -> anyhow::Result<()>
 where
     W: Write,
     D: DescribedIncome,
 {
-    let taxer_records: Vec<TaxerIncome> = income.iter().map(TaxerIncome::from_income).collect();
+    let taxer_records: Vec<TaxerIncome> = income.iter().map(|income| TaxerIncome {
+        income: income.income(),
+        tax_number: config.id.to_owned(),
+        comment: config.default_comment.to_owned()
+    }).collect();
     let mut csv_writer = csv::WriterBuilder::new().from_writer(writer);
     for record in taxer_records {
         record.write(&mut csv_writer)?;

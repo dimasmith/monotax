@@ -9,6 +9,7 @@ use income::DescribedIncome;
 use report::generate_report;
 use time::Quarter;
 
+mod config;
 mod date_filter;
 mod income;
 mod report;
@@ -55,17 +56,20 @@ fn main() -> anyhow::Result<()> {
         .filter(|income| quarter_filter.filter_income(income))
         .collect::<Vec<_>>();
 
+    let config = config::load_config()?;
     match cli.command {
         Command::TaxerCsv { csv_file } => {
             let writer: Box<dyn Write> = match csv_file {
                 Some(path) => Box::new(BufWriter::new(File::create(path)?)),
                 None => Box::new(BufWriter::new(stdout())),
             };
-            taxer::export_csv(&incomes, writer)?;
+            taxer::export_csv(&incomes, &config.taxer, writer)?;
         }
         Command::Report => {
+            
             let mut inc = incomes.iter().map(|i| i.income()).collect::<Vec<_>>();
-            let report = generate_report(&mut inc, 0.05);
+            // todo: replace with config
+            let report = generate_report(&mut inc, &config.tax);
             report::console::pretty_print(&report, stdout())?;
         }
     }
