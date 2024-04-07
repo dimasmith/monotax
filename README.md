@@ -8,8 +8,7 @@ It can prepare import files for awesome Taxer service.
 
 ## Next steps
 
-- [ ] Simplify income types. Possibly get rid of `DescribedIncome` trait.
-- [ ] Add application configuration holding Taxer metadata and tax rates.
+- [x] Simplify income types. Possibly get rid of `DescribedIncome` trait.
+- [x] Add application configuration holding Taxer metadata and tax rates.
 - [ ] Use all date filtering options from CLI.
 - [ ] Generate quarterly reports in CSV format.
-- 
