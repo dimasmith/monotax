@@ -8,23 +8,6 @@ use encoding_rs_rw::DecodingReader;
 
 use crate::{filter::IncomeFilter, income::Income};
 
-#[derive(Debug, Clone)]
-pub struct UnivesralBankIncome {
-    income: Income,
-    tax_number: String,
-    comment: String,
-}
-
-impl UnivesralBankIncome {
-    pub fn new(income: Income, tax_number: String, comment: String) -> Self {
-        Self {
-            income,
-            tax_number,
-            comment,
-        }
-    }
-}
-
 const DATE_COLUMN: usize = 12;
 const AMOUNT_COLUMN: usize = 14;
 const DESCRIPTION_COLUMN: usize = 15;
@@ -56,7 +39,10 @@ fn income_from_csv(record: &StringRecord) -> anyhow::Result<Income> {
     let amount = record
         .get(AMOUNT_COLUMN)
         .ok_or_else(|| anyhow::anyhow!("amount not found"))?;
+    let comment = record
+        .get(DESCRIPTION_COLUMN)
+        .ok_or_else(|| anyhow::anyhow!("comment not found"))?;
     let date = NaiveDate::parse_from_str(date, "%d.%m.%Y").context("failed to parse date")?;
     let amount = amount.parse().context("failed to parse amount")?;
-    Ok(Income::new(date, amount))
+    Ok(Income::new(date, amount).with_comment(comment.to_string()))
 }

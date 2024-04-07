@@ -16,10 +16,10 @@ where
 {
     let taxer_records: Vec<TaxerIncome> = income
         .iter()
-        .map(|income| TaxerIncome {
-            income: income.clone(),
-            tax_number: config.id.to_owned(),
-            comment: config.default_comment.to_owned(),
+        .map(|income| {
+            let tax_number = &config.id;
+            let comment = income.comment().unwrap_or(config.default_comment.to_string());
+            TaxerIncome::new(income.clone(), tax_number, comment)
         })
         .collect();
     let mut csv_writer = csv::WriterBuilder::new().from_writer(writer);
@@ -30,11 +30,11 @@ where
 }
 
 impl TaxerIncome {
-    pub fn new(income: Income, tax_number: String, comment: String) -> Self {
+    pub fn new(income: Income, tax_number: impl Into<String>, comment: impl Into<String>) -> Self {
         Self {
             income,
-            tax_number,
-            comment,
+            tax_number: tax_number.into(),
+            comment: comment.into(),
         }
     }
 
