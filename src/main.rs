@@ -4,11 +4,14 @@ use std::path::PathBuf;
 
 use anyhow::Context;
 use clap::{Parser, Subcommand};
+use cli::{IncludeQuarters, IncludeYears};
 use monotax::filter::date::{QuarterFilter, YearFilter};
 use monotax::filter::{IncomeFilter, IncomePredicate};
 use monotax::report::generate_report;
 use monotax::time::Quarter;
 use monotax::{config, report, taxer, universalbank};
+
+mod cli;
 
 #[derive(Debug, Parser)]
 struct Cli {
@@ -20,7 +23,21 @@ struct Cli {
 
     /// A qarter to filter incomes. Optional.
     #[clap(short, long)]
-    quarter: Option<u32>,
+    #[arg(value_enum)]
+    quarter: Option<Quarter>,
+    #[clap(long)]
+    #[arg(value_enum)]
+    include_quarters: IncludeQuarters,
+
+    /// What years to include in the report.
+    #[clap(long)]
+    #[arg(value_enum)]
+    include_years: IncludeYears,
+
+    /// A specific year to filter incomes. Optional.
+    #[clap(short, long)]
+    #[arg(value_enum)]
+    year: Option<i32>,
 }
 
 #[derive(Debug, Subcommand)]
@@ -59,12 +76,25 @@ fn main() -> anyhow::Result<()> {
 }
 
 fn create_filters(cli: &Cli) -> anyhow::Result<IncomeFilter> {
-    let quarter_filter = match cli.quarter {
-        Some(quarter) => QuarterFilter::One(Quarter::try_from(quarter)?),
-        None => QuarterFilter::Any,
-    }
-    .boxed();
-    let year_filter = YearFilter::Current.boxed();
-    let predicates = vec![year_filter, quarter_filter];
+    let include_quarters = cli.include_quarters;
+    let quarter = cli.quarter;
+
+    let quarter_filter = match (include_quarters, quarter) {
+        (IncludeQuarters::Any, None) => QuarterFilter::Any,
+        (IncludeQuarters::Any, Some(q)) => QuarterFilter::Only(q),
+        (IncludeQuarters::One, None) => QuarterFilter::Current,
+        (IncludeQuarters::One, Some(q)) => QuarterFilter::Only(q),
+        (IncludeQuarters::Ytd, None) => QuarterFilter::CurrentToDate,
+        (IncludeQuarters::Ytd, Some(q)) => QuarterFilter::Ytd(q),
+    };
+    let year_filter = match (cli.include_years, cli.year) {
+        (IncludeYears::All, None) => YearFilter::Any,
+        (IncludeYears::All, Some(y)) => YearFilter::One(y),
+        (IncludeYears::One, None) => YearFilter::Current,
+        (IncludeYears::One, Some(y)) => YearFilter::One(y),
+        (IncludeYears::Current, None) => YearFilter::Current,
+        (IncludeYears::Current, Some(y)) => YearFilter::One(y),
+    };
+    let predicates = vec![year_filter.boxed(), quarter_filter.boxed()];
     Ok(IncomeFilter::new(predicates))
 }

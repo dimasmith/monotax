@@ -1,12 +1,13 @@
 //! Time-related items.
 
 use chrono::{Datelike, Local, NaiveDate};
+use clap::ValueEnum;
 use std::fmt::Display;
 
 /// A quarter of the year.
 ///
 /// The reporting and taxation are usually based on quarters.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, ValueEnum)]
 pub enum Quarter {
     Q1,
     Q2,

@@ -23,7 +23,7 @@ pub enum YearFilter {
 #[derive(Debug, Clone, Copy, Default, PartialEq)]
 pub enum QuarterFilter {
     /// Filter by a specific quarter.
-    One(Quarter),
+    Only(Quarter),
     /// Filter by the year-to-date quarter.
     Ytd(Quarter),
     /// Accept income from any quarter.
@@ -38,7 +38,7 @@ pub enum QuarterFilter {
 impl QuarterFilter {
     pub fn filter(&self, date: &NaiveDate) -> bool {
         match self {
-            QuarterFilter::One(quarter) => *quarter == Quarter::from(date),
+            QuarterFilter::Only(quarter) => *quarter == Quarter::from(date),
             QuarterFilter::Ytd(quarter) => *quarter >= Quarter::from(date),
             QuarterFilter::Any => true,
             QuarterFilter::Current => Quarter::current() == Quarter::from(date),
@@ -91,14 +91,14 @@ mod tests {
 
         let filtered = dates
             .iter()
-            .filter(|d| QuarterFilter::One(Quarter::Q1).filter(d))
+            .filter(|d| QuarterFilter::Only(Quarter::Q1).filter(d))
             .collect::<Vec<_>>();
 
         assert_eq!(&filtered, &[&q1_date]);
 
         let filtered = dates
             .iter()
-            .filter(|d| QuarterFilter::One(Quarter::Q3).filter(d))
+            .filter(|d| QuarterFilter::Only(Quarter::Q3).filter(d))
             .collect::<Vec<_>>();
 
         assert_eq!(&filtered, &[&q3_date]);
