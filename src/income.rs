@@ -9,7 +9,11 @@ pub struct Income {
 
 impl Income {
     pub fn new(date: NaiveDate, amount: f64) -> Self {
-        Self { date, amount, comment: None }
+        Self {
+            date,
+            amount,
+            comment: None,
+        }
     }
 
     pub fn with_comment(self, comment: String) -> Self {
@@ -28,8 +32,8 @@ impl Income {
         self.amount
     }
 
-    pub fn comment(&self) -> Option<String> {
-        self.comment.clone()
+    pub fn comment(&self) -> Option<&str> {
+        self.comment.as_deref()
     }
 }
 

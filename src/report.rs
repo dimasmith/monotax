@@ -27,14 +27,14 @@ pub fn generate_report(incomes: &mut [Income], tax_props: &TaxConfig) -> Vec<Qua
 
     let mut prev_report = QuarterReport::income(
         incomes.first().expect("at least one income is present"),
-        tax_props.tax_rate,
+        tax_props.tax_rate(),
     );
     for income in &incomes[1..] {
         let date = income.date();
         if prev_report.is_for_date(&date) {
-            prev_report.add_income(income, tax_props.tax_rate);
+            prev_report.add_income(income, tax_props.tax_rate());
         } else {
-            let mut new_report = QuarterReport::income(income, tax_props.tax_rate);
+            let mut new_report = QuarterReport::income(income, tax_props.tax_rate());
             new_report.add_cumulative_values(&prev_report);
             reports.push(prev_report);
             prev_report = new_report;
@@ -132,8 +132,9 @@ mod tests {
     #[test]
     fn single_income_report() {
         let q1_income = Income::new(NaiveDate::from_ymd_opt(2024, 2, 5).unwrap(), 275000.0);
+        let tax_config = TaxConfig::new(0.05);
 
-        let report = generate_report(&mut [q1_income], &TaxConfig { tax_rate: 0.05 });
+        let report = generate_report(&mut [q1_income], &tax_config);
 
         assert_eq!(
             &report,
@@ -152,8 +153,8 @@ mod tests {
     fn single_quarter_report() {
         let feb_income = Income::new(NaiveDate::from_ymd_opt(2024, 2, 5).unwrap(), 1000.0);
         let mar_income = Income::new(NaiveDate::from_ymd_opt(2024, 3, 12).unwrap(), 1500.0);
-
-        let report = generate_report(&mut [feb_income, mar_income], &TaxConfig { tax_rate: 0.1 });
+        let tax_config = TaxConfig::new(0.1);
+        let report = generate_report(&mut [feb_income, mar_income], &tax_config);
 
         assert_eq!(
             &report,
@@ -173,8 +174,8 @@ mod tests {
         let feb_income = Income::new(NaiveDate::from_ymd_opt(2024, 2, 5).unwrap(), 1000.0);
         let mar_income = Income::new(NaiveDate::from_ymd_opt(2024, 3, 12).unwrap(), 1500.0);
         let apr_income = Income::new(NaiveDate::from_ymd_opt(2024, 4, 1).unwrap(), 2000.0);
-
-        let report = generate_report(&mut [feb_income, mar_income, apr_income], &TaxConfig { tax_rate: 0.1 });
+        let tax_config = TaxConfig::new(0.1);
+        let report = generate_report(&mut [feb_income, mar_income, apr_income], &tax_config);
 
         assert_eq!(
             &report,
@@ -200,11 +201,11 @@ mod tests {
     }
 
     #[test]
-    fn cross_year_report() {        
+    fn cross_year_report() {
         let dec_income = Income::new(NaiveDate::from_ymd_opt(2023, 12, 5).unwrap(), 1000.0);
         let jan_income = Income::new(NaiveDate::from_ymd_opt(2024, 1, 1).unwrap(), 1500.0);
-
-        let report = generate_report(&mut [dec_income, jan_income], &TaxConfig { tax_rate: 0.1 });
+        let tax_config = TaxConfig::new(0.1);
+        let report = generate_report(&mut [dec_income, jan_income], &tax_config);
 
         assert_eq!(
             &report,

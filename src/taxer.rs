@@ -4,10 +4,10 @@ use csv::Writer;
 
 use crate::{config::TaxerImportConfig, income::Income};
 
-pub struct TaxerIncome {
-    income: Income,
-    tax_number: String,
-    comment: String,
+pub struct TaxerIncome<'a> {
+    income: &'a Income,
+    tax_number: &'a str,
+    comment: &'a str,
 }
 
 pub fn export_csv<W>(income: &[Income], config: &TaxerImportConfig, writer: W) -> anyhow::Result<()>
@@ -17,9 +17,9 @@ where
     let taxer_records: Vec<TaxerIncome> = income
         .iter()
         .map(|income| {
-            let tax_number = &config.id;
-            let comment = income.comment().unwrap_or(config.default_comment.to_string());
-            TaxerIncome::new(income.clone(), tax_number, comment)
+            let tax_number = config.id();
+            let comment = income.comment().unwrap_or(config.default_comment());
+            TaxerIncome::new(income, tax_number, comment)
         })
         .collect();
     let mut csv_writer = csv::WriterBuilder::new().from_writer(writer);
@@ -29,12 +29,12 @@ where
     Ok(())
 }
 
-impl TaxerIncome {
-    pub fn new(income: Income, tax_number: impl Into<String>, comment: impl Into<String>) -> Self {
+impl<'a> TaxerIncome<'a> {
+    pub fn new(income: &'a Income, tax_number: &'a str, comment: &'a str) -> Self {
         Self {
             income,
-            tax_number: tax_number.into(),
-            comment: comment.into(),
+            tax_number,
+            comment,
         }
     }
 
@@ -44,7 +44,7 @@ impl TaxerIncome {
     {
         let date = self.income.date().format("%d.%m.%Y").to_string();
         let amount = format!("{:.2}", self.income.amount());
-        writer.write_record([&self.tax_number, &date, &amount, &self.comment])?;
+        writer.write_record([&self.tax_number, date.as_str(), &amount, &self.comment])?;
         Ok(())
     }
 }

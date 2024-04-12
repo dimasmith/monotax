@@ -15,14 +15,14 @@ pub struct Config {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct TaxConfig {
-    pub(crate) tax_rate: f64,
+    tax_rate: f64,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct TaxerImportConfig {
-    pub(crate) id: String,
-    pub(crate) account_name: String,
-    pub(crate) default_comment: String,
+    id: String,
+    account_name: String,
+    default_comment: String,
 }
 
 pub fn load_config() -> anyhow::Result<Config> {
@@ -53,6 +53,30 @@ impl Default for Config {
             taxer: TaxerImportConfig::default(),
             tax: TaxConfig::default(),
         }
+    }
+}
+
+impl TaxConfig {
+    pub fn new(tax_rate: f64) -> Self {
+        Self { tax_rate }
+    }
+
+    pub fn tax_rate(&self) -> f64 {
+        self.tax_rate
+    }
+}
+
+impl TaxerImportConfig {
+    pub fn id(&self) -> &str {
+        &self.id
+    }
+
+    pub fn account_name(&self) -> &str {
+        &self.account_name
+    }
+
+    pub fn default_comment(&self) -> &str {
+        &self.default_comment
     }
 }
 
