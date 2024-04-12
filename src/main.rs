@@ -3,7 +3,7 @@ use std::io::{prelude::*, stdout, BufWriter};
 use std::path::PathBuf;
 
 use anyhow::Context;
-use clap::{Parser, Subcommand};
+use clap::{Parser, Subcommand, ValueEnum};
 use cli::{IncludeQuarters, IncludeYears};
 use monotax::filter::date::{QuarterFilter, YearFilter};
 use monotax::filter::{IncomeFilter, IncomePredicate};
@@ -43,9 +43,28 @@ struct Cli {
 #[derive(Debug, Subcommand)]
 enum Command {
     /// Export statement csv to taxer csv
-    TaxerCsv { csv_file: Option<PathBuf> },
+    TaxerCsv {
+        #[clap(short, long)]
+        output: Option<PathBuf>,
+    },
     /// Generates quaretly tax report of incomes.
-    Report,
+    Report {
+        #[clap(short, long)]
+        #[arg(value_enum)]
+        #[arg(value_enum, default_value_t)]
+        format: ReportFormat,
+        #[clap(short, long)]
+        output: Option<PathBuf>,
+    },
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, ValueEnum, Default)]
+enum ReportFormat {
+    /// Print report to console
+    #[default]
+    Console,
+    /// Export report to csv file
+    Csv,
 }
 
 fn main() -> anyhow::Result<()> {
@@ -59,16 +78,23 @@ fn main() -> anyhow::Result<()> {
 
     let config = config::load_config()?;
     match cli.command {
-        Command::TaxerCsv { csv_file } => {
-            let writer: Box<dyn Write> = match csv_file {
+        Command::TaxerCsv { output } => {
+            let writer: Box<dyn Write> = match output {
                 Some(path) => Box::new(BufWriter::new(File::create(path)?)),
                 None => Box::new(BufWriter::new(stdout())),
             };
             taxer::export_csv(&incomes, config.taxer(), writer)?;
         }
-        Command::Report => {
+        Command::Report { format, output } => {
             let report = generate_report(&mut incomes, config.tax());
-            report::console::pretty_print(&report, stdout())?;
+            let writer: Box<dyn Write> = match output {
+                Some(path) => Box::new(BufWriter::new(File::create(path)?)),
+                None => Box::new(BufWriter::new(stdout())),
+            };
+            match format {
+                ReportFormat::Console => report::console::pretty_print(&report, writer)?,
+                ReportFormat::Csv => report::csv::render_csv(&report, writer)?,
+            };
         }
     }
 

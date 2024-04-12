@@ -7,6 +7,7 @@ use crate::income::Income;
 use crate::time::Quarter;
 
 pub mod console;
+pub mod csv;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct QuarterReport {
