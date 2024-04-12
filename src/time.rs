@@ -6,7 +6,7 @@ use std::fmt::Display;
 /// A quarter of the year.
 ///
 /// The reporting and taxation are usually based on quarters.
-#[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Quarter {
     Q1,
     Q2,
@@ -31,6 +31,12 @@ impl Quarter {
             Self::Q3 => 3,
             Self::Q4 => 4,
         }
+    }
+}
+
+impl PartialOrd for Quarter {
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        Some(self.cmp(other))
     }
 }
 

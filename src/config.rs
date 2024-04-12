@@ -7,7 +7,7 @@ use xdg::BaseDirectories;
 
 const APP_NAME: &str = "monotax";
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Default)]
 pub struct Config {
     pub(crate) taxer: TaxerImportConfig,
     pub(crate) tax: TaxConfig,
@@ -45,15 +45,6 @@ pub fn load_config() -> anyhow::Result<Config> {
 
     let config: Config = toml::from_str(&std::fs::read_to_string(&config_file_path)?)?;
     Ok(config)
-}
-
-impl Default for Config {
-    fn default() -> Self {
-        Self {
-            taxer: TaxerImportConfig::default(),
-            tax: TaxConfig::default(),
-        }
-    }
 }
 
 impl TaxConfig {

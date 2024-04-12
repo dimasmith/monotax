@@ -9,30 +9,30 @@ use super::IncomePredicate;
 
 #[derive(Debug, Clone, Copy, Default, PartialEq)]
 pub enum YearFilter {
-    OneYear(i32),
-    AnyYear,
+    One(i32),
+    Any,
     #[default]
-    CurrentYear,
+    Current,
 }
 
 #[derive(Debug, Clone, Copy, Default, PartialEq)]
 pub enum QuarterFilter {
-    OneQuarter(Quarter),
+    One(Quarter),
     Ytd(Quarter),
-    AllQuarters,
+    Any,
     #[default]
-    CurrentQuarter,
-    CurrentQuarterYtd,
+    Current,
+    CurrentToDate,
 }
 
 impl QuarterFilter {
     pub fn filter(&self, date: &NaiveDate) -> bool {
         match self {
-            QuarterFilter::OneQuarter(quarter) => *quarter == Quarter::from(date),
+            QuarterFilter::One(quarter) => *quarter == Quarter::from(date),
             QuarterFilter::Ytd(quarter) => *quarter >= Quarter::from(date),
-            QuarterFilter::AllQuarters => true,
-            QuarterFilter::CurrentQuarter => Quarter::current() == Quarter::from(date),
-            QuarterFilter::CurrentQuarterYtd => Quarter::current() >= Quarter::from(date),
+            QuarterFilter::Any => true,
+            QuarterFilter::Current => Quarter::current() == Quarter::from(date),
+            QuarterFilter::CurrentToDate => Quarter::current() >= Quarter::from(date),
         }
     }
 
@@ -44,9 +44,9 @@ impl QuarterFilter {
 impl YearFilter {
     pub fn filter(&self, date: &NaiveDate) -> bool {
         match self {
-            YearFilter::OneYear(year) => *year == date.year(),
-            YearFilter::AnyYear => true,
-            YearFilter::CurrentYear => Local::now().naive_local().year() == date.year(),
+            YearFilter::One(year) => *year == date.year(),
+            YearFilter::Any => true,
+            YearFilter::Current => Local::now().naive_local().year() == date.year(),
         }
     }
 
@@ -81,14 +81,14 @@ mod tests {
 
         let filtered = dates
             .iter()
-            .filter(|d| QuarterFilter::OneQuarter(Quarter::Q1).filter(d))
+            .filter(|d| QuarterFilter::One(Quarter::Q1).filter(d))
             .collect::<Vec<_>>();
 
         assert_eq!(&filtered, &[&q1_date]);
 
         let filtered = dates
             .iter()
-            .filter(|d| QuarterFilter::OneQuarter(Quarter::Q3).filter(d))
+            .filter(|d| QuarterFilter::One(Quarter::Q3).filter(d))
             .collect::<Vec<_>>();
 
         assert_eq!(&filtered, &[&q3_date]);

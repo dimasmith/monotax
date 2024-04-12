@@ -23,7 +23,7 @@ pub fn generate_report(incomes: &mut [Income], tax_props: &TaxConfig) -> Vec<Qua
         return vec![];
     }
     let mut reports = vec![];
-    incomes.sort_by(|lhs, rhs| lhs.date().cmp(&rhs.date()));
+    incomes.sort_by_key(|income| income.date());
 
     let mut prev_report = QuarterReport::income(
         incomes.first().expect("at least one income is present"),
@@ -48,7 +48,7 @@ impl QuarterReport {
     fn income(income: &Income, tax: f64) -> Self {
         let date = income.date();
         let year = date.year();
-        let quarter = Quarter::of(&income);
+        let quarter = Quarter::of(income);
         let amount = income.amount();
         let tax = amount * tax;
         Self {
@@ -64,7 +64,7 @@ impl QuarterReport {
     fn is_for_date(&self, date: &NaiveDate) -> bool {
         let year = date.year();
         let quarter = Quarter::from(date);
-        return self.year == year && self.quarter == quarter;
+        self.year == year && self.quarter == quarter
     }
 
     fn add_income(&mut self, income: &Income, tax_rate: f64) {

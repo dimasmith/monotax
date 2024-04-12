@@ -44,9 +44,8 @@ fn main() -> anyhow::Result<()> {
     let stmt_file = File::open(stmt_path)
         .with_context(|| format!("open statement file {}", stmt_path.display()))?;
 
-    
     let filter = create_filters(&cli)?;
-    let mut incomes = universalbank::read_incomes(stmt_file, &filter)?;        
+    let mut incomes = universalbank::read_incomes(stmt_file, &filter)?;
 
     let config = config::load_config()?;
     match cli.command {
@@ -68,10 +67,11 @@ fn main() -> anyhow::Result<()> {
 
 fn create_filters(cli: &Cli) -> anyhow::Result<IncomeFilter> {
     let quarter_filter = match cli.quarter {
-        Some(quarter) => QuarterFilter::OneQuarter(Quarter::try_from(quarter)?),
-        None => QuarterFilter::AllQuarters,
+        Some(quarter) => QuarterFilter::One(Quarter::try_from(quarter)?),
+        None => QuarterFilter::Any,
     };
-    let year_filter = YearFilter::CurrentYear;
-    let predicates: Vec<Box<dyn IncomePredicate>> = vec![Box::new(year_filter), Box::new(quarter_filter)];
+    let year_filter = YearFilter::Current;
+    let predicates: Vec<Box<dyn IncomePredicate>> =
+        vec![Box::new(year_filter), Box::new(quarter_filter)];
     Ok(IncomeFilter::new(predicates))
 }
