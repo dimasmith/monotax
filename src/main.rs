@@ -74,7 +74,7 @@ fn main() -> anyhow::Result<()> {
         .with_context(|| format!("open statement file {}", stmt_path.display()))?;
 
     let filter = create_filters(&cli)?;
-    let mut incomes = universalbank::read_incomes(stmt_file, &filter)?;
+    let incomes = universalbank::read_incomes(stmt_file, &filter)?;
 
     let config = config::load_config()?;
     match cli.command {
@@ -86,7 +86,7 @@ fn main() -> anyhow::Result<()> {
             taxer::export_csv(&incomes, config.taxer(), writer)?;
         }
         Command::Report { format, output } => {
-            let report = generate_report(&mut incomes, config.tax());
+            let report = generate_report(incomes.into_iter(), config.tax());
             let writer: Box<dyn Write> = match output {
                 Some(path) => Box::new(BufWriter::new(File::create(path)?)),
                 None => Box::new(BufWriter::new(stdout())),

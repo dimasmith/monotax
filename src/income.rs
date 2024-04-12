@@ -42,3 +42,19 @@ impl AsRef<NaiveDate> for Income {
         &self.date
     }
 }
+
+use std::cmp::Ordering;
+
+impl Ord for Income {
+    fn cmp(&self, other: &Self) -> Ordering {
+        self.date.cmp(&other.date)
+    }
+}
+
+impl PartialOrd for Income {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+impl Eq for Income {}
