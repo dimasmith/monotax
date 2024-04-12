@@ -43,7 +43,7 @@ struct Cli {
 #[derive(Debug, Subcommand)]
 enum Command {
     /// Export statement csv to taxer csv
-    TaxerCsv {
+    Taxer {
         #[clap(short, long)]
         output: Option<PathBuf>,
     },
@@ -78,7 +78,7 @@ fn main() -> anyhow::Result<()> {
 
     let config = config::load_config()?;
     match cli.command {
-        Command::TaxerCsv { output } => {
+        Command::Taxer { output } => {
             let writer: Box<dyn Write> = match output {
                 Some(path) => Box::new(BufWriter::new(File::create(path)?)),
                 None => Box::new(BufWriter::new(stdout())),
