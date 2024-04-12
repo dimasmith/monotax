@@ -62,9 +62,9 @@ fn create_filters(cli: &Cli) -> anyhow::Result<IncomeFilter> {
     let quarter_filter = match cli.quarter {
         Some(quarter) => QuarterFilter::One(Quarter::try_from(quarter)?),
         None => QuarterFilter::Any,
-    };
-    let year_filter = YearFilter::Current;
-    let predicates: Vec<Box<dyn IncomePredicate>> =
-        vec![Box::new(year_filter), Box::new(quarter_filter)];
+    }
+    .boxed();
+    let year_filter = YearFilter::Current.boxed();
+    let predicates = vec![year_filter, quarter_filter];
     Ok(IncomeFilter::new(predicates))
 }

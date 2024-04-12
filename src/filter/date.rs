@@ -7,21 +7,31 @@ use crate::time::Quarter;
 
 use super::IncomePredicate;
 
+/// Predicate that filters incomes by year.
 #[derive(Debug, Clone, Copy, Default, PartialEq)]
 pub enum YearFilter {
+    /// Filter by a specific year.
     One(i32),
+    /// Accept income from any year.
     Any,
+    /// Filter by the current year.
     #[default]
     Current,
 }
 
+/// Predicate that filters incomes by quarter.
 #[derive(Debug, Clone, Copy, Default, PartialEq)]
 pub enum QuarterFilter {
+    /// Filter by a specific quarter.
     One(Quarter),
+    /// Filter by the year-to-date quarter.
     Ytd(Quarter),
+    /// Accept income from any quarter.
     Any,
+    /// Filter by the current quarter.
     #[default]
     Current,
+    /// Filter by the current quarter and all previous quarters.
     CurrentToDate,
 }
 

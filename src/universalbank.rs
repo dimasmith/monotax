@@ -6,7 +6,8 @@ use csv::StringRecord;
 use encoding_rs::WINDOWS_1251;
 use encoding_rs_rw::DecodingReader;
 
-use crate::{filter::IncomeFilter, income::Income};
+use crate::filter::{IncomeFilter, IncomePredicate};
+use crate::income::Income;
 
 const DATE_COLUMN: usize = 12;
 const AMOUNT_COLUMN: usize = 14;
