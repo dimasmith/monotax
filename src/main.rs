@@ -4,18 +4,11 @@ use std::path::PathBuf;
 
 use anyhow::Context;
 use clap::{Parser, Subcommand};
-use filter::date::{QuarterFilter, YearFilter};
-use filter::{IncomeFilter, IncomePredicate};
-use report::generate_report;
-use time::Quarter;
-
-mod config;
-mod filter;
-mod income;
-mod report;
-mod taxer;
-mod time;
-mod universalbank;
+use monotax::filter::date::{QuarterFilter, YearFilter};
+use monotax::filter::{IncomeFilter, IncomePredicate};
+use monotax::report::generate_report;
+use monotax::time::Quarter;
+use monotax::{config, report, taxer, universalbank};
 
 #[derive(Debug, Parser)]
 struct Cli {
@@ -54,10 +47,10 @@ fn main() -> anyhow::Result<()> {
                 Some(path) => Box::new(BufWriter::new(File::create(path)?)),
                 None => Box::new(BufWriter::new(stdout())),
             };
-            taxer::export_csv(&incomes, &config.taxer, writer)?;
+            taxer::export_csv(&incomes, config.taxer(), writer)?;
         }
         Command::Report => {
-            let report = generate_report(&mut incomes, &config.tax);
+            let report = generate_report(&mut incomes, config.tax());
             report::console::pretty_print(&report, stdout())?;
         }
     }

@@ -9,8 +9,8 @@ const APP_NAME: &str = "monotax";
 
 #[derive(Debug, Serialize, Deserialize, Default)]
 pub struct Config {
-    pub(crate) taxer: TaxerImportConfig,
-    pub(crate) tax: TaxConfig,
+    taxer: TaxerImportConfig,
+    tax: TaxConfig,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -45,6 +45,16 @@ pub fn load_config() -> anyhow::Result<Config> {
 
     let config: Config = toml::from_str(&std::fs::read_to_string(&config_file_path)?)?;
     Ok(config)
+}
+
+impl Config {
+    pub fn taxer(&self) -> &TaxerImportConfig {
+        &self.taxer
+    }
+
+    pub fn tax(&self) -> &TaxConfig {
+        &self.tax
+    }
 }
 
 impl TaxConfig {
