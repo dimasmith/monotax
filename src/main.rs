@@ -26,12 +26,12 @@ struct Cli {
     #[arg(value_enum)]
     quarter: Option<Quarter>,
     #[clap(long)]
-    #[arg(value_enum)]
+    #[arg(value_enum, default_value_t)]
     include_quarters: IncludeQuarters,
 
     /// What years to include in the report.
     #[clap(long)]
-    #[arg(value_enum)]
+    #[arg(value_enum, default_value_t)]
     include_years: IncludeYears,
 
     /// A specific year to filter incomes. Optional.
