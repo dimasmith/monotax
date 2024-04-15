@@ -2,7 +2,7 @@
 
 use std::fs::File;
 
-use log::warn;
+use log::{info, warn};
 use serde::{Deserialize, Serialize};
 use xdg::BaseDirectories;
 
@@ -29,23 +29,38 @@ pub struct TaxerImportConfig {
 pub fn load_config() -> anyhow::Result<Config> {
     let xdg_dirs = BaseDirectories::with_prefix(APP_NAME)?;
     let config_file_path = xdg_dirs.place_config_file("config.toml")?;
-    // todo: replace with proper logging.
     if !config_file_path.exists() {
         warn!(
-            "the configuration file {} is missing. using the default configuration",
+            "The configuration file {} is missing. Using the default configuration",
             config_file_path.display()
         );
-        // creating example config file if the default is not present
-        let example_config = xdg_dirs.place_config_file("config.toml.example")?;
-        let mut example_config = File::create(example_config)?;
-        let default_config = Config::default();
-        let toml = toml::to_string(&default_config)?;
-        std::io::Write::write_all(&mut example_config, toml.as_bytes())?;
+        warn!("It's highly unlikely that the default configuration fits your needs");
+        info!("Create the configuration file with init command");
         return Ok(Config::default());
     }
 
     let config: Config = toml::from_str(&std::fs::read_to_string(&config_file_path)?)?;
     Ok(config)
+}
+
+pub fn create_default_config(force: bool) -> anyhow::Result<()> {
+    let xdg_dirs = BaseDirectories::with_prefix(APP_NAME)?;
+    let config_file_path = xdg_dirs.place_config_file("config.toml")?;
+    if config_file_path.exists() && !force {
+        warn!(
+            "Not writing the configuration. The configuration file {} already exists",
+            config_file_path.display()
+        );
+        info!("Use -f flag to override the configuration");
+        return Ok(());
+    }
+
+    let mut config_file = File::create(config_file_path)?;
+    let default_config = Config::default();
+    let toml = toml::to_string_pretty(&default_config)?;
+    std::io::Write::write_all(&mut config_file, toml.as_bytes())?;
+
+    Ok(())
 }
 
 impl Config {
