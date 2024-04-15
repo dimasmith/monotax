@@ -131,13 +131,19 @@ impl QuarterReport {
 
 #[cfg(test)]
 mod tests {
-    use chrono::NaiveDate;
+    use chrono::{NaiveDate, NaiveDateTime, NaiveTime};
 
     use super::*;
 
+    fn date(y: i32, m: u32, d: u32) -> NaiveDateTime {
+        NaiveDate::from_ymd_opt(y, m, d)
+            .unwrap()
+            .and_time(NaiveTime::from_hms_opt(12, 0, 0).unwrap())
+    }
+
     #[test]
     fn single_income_report() {
-        let q1_income = Income::new(NaiveDate::from_ymd_opt(2024, 2, 5).unwrap(), 275000.0);
+        let q1_income = Income::new(date(2024, 2, 5), 275000.0);
         let tax_config = TaxConfig::new(0.05);
 
         let report = generate_report(vec![q1_income].into_iter(), &tax_config);
@@ -157,8 +163,8 @@ mod tests {
 
     #[test]
     fn single_quarter_report() {
-        let feb_income = Income::new(NaiveDate::from_ymd_opt(2024, 2, 5).unwrap(), 1000.0);
-        let mar_income = Income::new(NaiveDate::from_ymd_opt(2024, 3, 12).unwrap(), 1500.0);
+        let feb_income = Income::new(date(2024, 2, 5), 1000.0);
+        let mar_income = Income::new(date(2024, 3, 12), 1500.0);
         let tax_config = TaxConfig::new(0.1);
         let report = generate_report(&mut [feb_income, mar_income].into_iter(), &tax_config);
 
@@ -177,9 +183,9 @@ mod tests {
 
     #[test]
     fn two_quarters_report() {
-        let feb_income = Income::new(NaiveDate::from_ymd_opt(2024, 2, 5).unwrap(), 1000.0);
-        let mar_income = Income::new(NaiveDate::from_ymd_opt(2024, 3, 12).unwrap(), 1500.0);
-        let apr_income = Income::new(NaiveDate::from_ymd_opt(2024, 4, 1).unwrap(), 2000.0);
+        let feb_income = Income::new(date(2024, 2, 5), 1000.0);
+        let mar_income = Income::new(date(2024, 3, 12), 1500.0);
+        let apr_income = Income::new(date(2024, 4, 1), 2000.0);
         let tax_config = TaxConfig::new(0.1);
         let report = generate_report(
             &mut [feb_income, mar_income, apr_income].into_iter(),
@@ -211,8 +217,8 @@ mod tests {
 
     #[test]
     fn cross_year_report() {
-        let dec_income = Income::new(NaiveDate::from_ymd_opt(2023, 12, 5).unwrap(), 1000.0);
-        let jan_income = Income::new(NaiveDate::from_ymd_opt(2024, 1, 1).unwrap(), 1500.0);
+        let dec_income = Income::new(date(2023, 12, 5), 1000.0);
+        let jan_income = Income::new(date(2024, 1, 1), 1500.0);
         let tax_config = TaxConfig::new(0.1);
         let report = generate_report(&mut [dec_income, jan_income].into_iter(), &tax_config);
 

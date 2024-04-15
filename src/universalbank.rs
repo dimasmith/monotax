@@ -1,7 +1,7 @@
 use std::io::{BufReader, Read};
 
 use anyhow::Context;
-use chrono::NaiveDate;
+use chrono::NaiveDateTime;
 use csv::StringRecord;
 use encoding_rs::WINDOWS_1251;
 use encoding_rs_rw::DecodingReader;
@@ -9,7 +9,7 @@ use encoding_rs_rw::DecodingReader;
 use crate::filter::{IncomeFilter, IncomePredicate};
 use crate::income::Income;
 
-const DATE_COLUMN: usize = 12;
+const DATE_COLUMN: usize = 4;
 const AMOUNT_COLUMN: usize = 14;
 const DESCRIPTION_COLUMN: usize = 15;
 
@@ -43,7 +43,8 @@ fn income_from_csv(record: &StringRecord) -> anyhow::Result<Income> {
     let comment = record
         .get(DESCRIPTION_COLUMN)
         .ok_or_else(|| anyhow::anyhow!("comment not found"))?;
-    let date = NaiveDate::parse_from_str(date, "%d.%m.%Y").context("failed to parse date")?;
+    let date =
+        NaiveDateTime::parse_from_str(date, "%d.%m.%Y %H:%M:%S").context("failed to parse date")?;
     let amount = amount.parse().context("failed to parse amount")?;
     Ok(Income::new(date, amount).with_comment(comment.to_string()))
 }

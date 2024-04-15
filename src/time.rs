@@ -1,6 +1,6 @@
 //! Time-related items.
 
-use chrono::{Datelike, Local, NaiveDate};
+use chrono::{Datelike, Local, NaiveDate, NaiveDateTime};
 use clap::ValueEnum;
 use std::fmt::Display;
 
@@ -17,11 +17,11 @@ pub enum Quarter {
 
 impl Quarter {
     pub fn current() -> Self {
-        let date = Local::now().naive_local().date();
+        let date = Local::now().naive_local();
         Quarter::from(&date)
     }
 
-    pub fn of(date_ref: impl AsRef<NaiveDate>) -> Self {
+    pub fn of(date_ref: impl AsRef<NaiveDateTime>) -> Self {
         Quarter::from(date_ref.as_ref())
     }
 
@@ -66,6 +66,12 @@ impl From<&NaiveDate> for Quarter {
     }
 }
 
+impl From<&NaiveDateTime> for Quarter {
+    fn from(date_time: &NaiveDateTime) -> Self {
+        Quarter::from(&date_time.date())
+    }
+}
+
 impl TryFrom<u32> for Quarter {
     type Error = anyhow::Error;
 
@@ -83,7 +89,7 @@ impl TryFrom<u32> for Quarter {
 #[cfg(test)]
 mod tests {
 
-    use crate::income::Income;
+    use chrono::NaiveDateTime;
 
     use super::*;
 
@@ -108,6 +114,22 @@ mod tests {
     }
 
     #[test]
+    fn quarter_from_date_time() {
+        let q1_dt =
+            NaiveDateTime::parse_from_str("2024-02-29 12:00:39", "%Y-%m-%d %H:%M:%S").unwrap();
+        let q2_dt =
+            NaiveDateTime::parse_from_str("2024-05-12 13:30:49", "%Y-%m-%d %H:%M:%S").unwrap();
+        let q3_dt =
+            NaiveDateTime::parse_from_str("2024-08-21 14:30:00", "%Y-%m-%d %H:%M:%S").unwrap();
+        let q4_dt =
+            NaiveDateTime::parse_from_str("2024-10-01 17:00:00", "%Y-%m-%d %H:%M:%S").unwrap();
+        assert_eq!(Quarter::from(&q1_dt), Quarter::Q1);
+        assert_eq!(Quarter::from(&q2_dt), Quarter::Q2);
+        assert_eq!(Quarter::from(&q3_dt), Quarter::Q3);
+        assert_eq!(Quarter::from(&q4_dt), Quarter::Q4);
+    }
+
+    #[test]
     fn quarter_from_number() {
         assert!(matches!(Quarter::try_from(1), Ok(Quarter::Q1)));
         assert!(matches!(Quarter::try_from(2), Ok(Quarter::Q2)));
@@ -123,13 +145,5 @@ mod tests {
         assert!(Quarter::Q2 < Quarter::Q3);
         assert!(Quarter::Q3 < Quarter::Q4);
         assert!(Quarter::Q2 == Quarter::Q2);
-    }
-
-    #[test]
-    fn income_quarter() {
-        let income = Income::new(NaiveDate::from_ymd_opt(2024, 2, 29).unwrap(), 1000.0);
-        let quarter = Quarter::of(&income);
-
-        assert_eq!(quarter, Quarter::Q1);
     }
 }

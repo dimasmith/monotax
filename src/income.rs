@@ -1,14 +1,14 @@
-use chrono::NaiveDate;
+use chrono::{NaiveDate, NaiveDateTime};
 
 #[derive(Debug, Clone)]
 pub struct Income {
-    date: NaiveDate,
+    date: NaiveDateTime,
     amount: f64,
     comment: Option<String>,
 }
 
 impl Income {
-    pub fn new(date: NaiveDate, amount: f64) -> Self {
+    pub fn new(date: NaiveDateTime, amount: f64) -> Self {
         Self {
             date,
             amount,
@@ -25,7 +25,7 @@ impl Income {
     }
 
     pub fn date(&self) -> NaiveDate {
-        self.date
+        self.date.date()
     }
 
     pub fn amount(&self) -> f64 {
@@ -37,8 +37,8 @@ impl Income {
     }
 }
 
-impl AsRef<NaiveDate> for Income {
-    fn as_ref(&self) -> &NaiveDate {
+impl AsRef<NaiveDateTime> for Income {
+    fn as_ref(&self) -> &NaiveDateTime {
         &self.date
     }
 }

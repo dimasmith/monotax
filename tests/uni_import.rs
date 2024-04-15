@@ -12,7 +12,7 @@ use monotax::{
 
 fn income(date: &str, amount: f64) -> Income {
     let income_date = NaiveDateTime::parse_from_str(date, "%d.%m.%Y %H:%M:%S").unwrap();
-    Income::new(income_date.date(), amount)
+    Income::new(income_date, amount)
 }
 
 #[test]
