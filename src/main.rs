@@ -5,6 +5,7 @@ use std::path::PathBuf;
 use anyhow::Context;
 use clap::{Parser, Subcommand, ValueEnum};
 use cli::{IncludeQuarters, IncludeYears};
+use env_logger::{Builder, Env};
 use monotax::filter::date::{QuarterFilter, YearFilter};
 use monotax::filter::{IncomeFilter, IncomePredicate};
 use monotax::report::generate_report;
@@ -68,6 +69,10 @@ enum ReportFormat {
 }
 
 fn main() -> anyhow::Result<()> {
+    // Initialize logging
+    let env = Env::default().filter_or("RUST_LOG", "monotax=info");
+    Builder::from_env(env).init();
+
     let cli = Cli::parse();
     let stmt_path = cli.statement.as_path();
     let stmt_file = File::open(stmt_path)

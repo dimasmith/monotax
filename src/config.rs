@@ -2,6 +2,7 @@
 
 use std::fs::File;
 
+use log::warn;
 use serde::{Deserialize, Serialize};
 use xdg::BaseDirectories;
 
@@ -30,7 +31,7 @@ pub fn load_config() -> anyhow::Result<Config> {
     let config_file_path = xdg_dirs.place_config_file("config.toml")?;
     // todo: replace with proper logging.
     if !config_file_path.exists() {
-        println!(
+        warn!(
             "the configuration file {} is missing. using the default configuration",
             config_file_path.display()
         );
