@@ -1,6 +1,6 @@
 use chrono::NaiveDate;
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone)]
 pub struct Income {
     date: NaiveDate,
     amount: f64,
@@ -54,6 +54,12 @@ impl Ord for Income {
 impl PartialOrd for Income {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         Some(self.cmp(other))
+    }
+}
+
+impl PartialEq for Income {
+    fn eq(&self, other: &Self) -> bool {
+        self.date == other.date && self.amount == other.amount
     }
 }
 
