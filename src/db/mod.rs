@@ -10,7 +10,7 @@ mod config;
 pub mod init;
 pub mod repository;
 
-pub fn save_all(incomes: &[Income]) -> anyhow::Result<()> {
+pub fn save_all(incomes: &[Income]) -> anyhow::Result<usize> {
     let mut conn = connect()?;
     repository::save_incomes(&mut conn, incomes)
 }

@@ -24,10 +24,11 @@ mod sqlite_repository {
         let income2 = income("2024-07-13 14:00:00", 325.0);
         let incomes = vec![income1.clone(), income2.clone()];
 
-        save_incomes(&mut conn, &incomes).unwrap();
+        let updated = save_incomes(&mut conn, &incomes).unwrap();
 
         let incomes = load_all_incomes(&mut conn).unwrap();
         assert_eq!(incomes.len(), 2, "unexpected number of incomes");
+        assert_eq!(updated, 2, "unexpected number of updated rows");
         // incomes must be ordered by date
         assert_eq!(incomes[0], income1);
         assert_eq!(incomes[1], income2);
@@ -44,11 +45,12 @@ mod sqlite_repository {
         let income1_dup = income1.clone();
         let incomes = vec![income1.clone(), income2.clone(), income2_dup, income1_dup];
 
-        save_incomes(&mut conn, &incomes).unwrap();
+        let updated = save_incomes(&mut conn, &incomes).unwrap();
 
         let incomes = load_all_incomes(&mut conn).unwrap();
         // duplicates must be ignored
         // so we expect only 2 unique incomes
+        assert_eq!(updated, 2, "unexpected number of updated rows");
         assert_eq!(incomes.len(), 2, "unexpected number of incomes");
         // incomes must be ordered by date
         assert_eq!(incomes[0], income1);

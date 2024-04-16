@@ -3,12 +3,13 @@ use rusqlite::{params, Connection};
 
 use crate::{income::Income, time::Quarter};
 
-pub fn save_incomes(conn: &mut Connection, incomes: &[Income]) -> anyhow::Result<()> {
+pub fn save_incomes(conn: &mut Connection, incomes: &[Income]) -> anyhow::Result<usize> {
     let income_records = incomes.iter().map(IncomeRecord::from);
 
+    let mut updated = 0;
     let tx = conn.transaction()?;
     for income in income_records {
-        tx.execute(
+        updated += tx.execute(
             "INSERT OR IGNORE INTO incomes (date, amount, description, year, quarter) VALUES (?1, ?2, ?3, ?4, ?5)",
             params![
                 income.date.to_string(),
@@ -21,7 +22,7 @@ pub fn save_incomes(conn: &mut Connection, incomes: &[Income]) -> anyhow::Result
     }
     tx.commit()?;
 
-    Ok(())
+    Ok(updated)
 }
 
 pub fn load_all_incomes(conn: &mut Connection) -> anyhow::Result<Vec<Income>> {
