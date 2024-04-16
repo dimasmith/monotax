@@ -1,6 +1,6 @@
 //! Initialize database schema.
 
-use super::config::database_path;
+use super::config::{connect, database_path};
 use log::info;
 use rusqlite::Connection;
 
@@ -27,5 +27,12 @@ pub fn initialize_db_file() -> anyhow::Result<()> {
         info!("Database created at {}", &db_path.display());
     }
 
+    Ok(())
+}
+
+pub fn initialize_db() -> anyhow::Result<()> {
+    initialize_db_file()?;
+    let mut conn = connect()?;
+    create_schema(&mut conn)?;
     Ok(())
 }

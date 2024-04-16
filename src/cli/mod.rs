@@ -42,16 +42,33 @@ pub enum Command {
         statement: PathBuf,
     },
     /// Export statement csv to taxer csv
+    #[cfg(not(feature = "sqlite"))]
     Taxer {
         /// Path to the statement csv file
         statement: PathBuf,
         #[clap(short, long)]
         output: Option<PathBuf>,
     },
+    #[cfg(feature = "sqlite")]
+    Taxer {
+        /// Output file for taxer csv
+        #[clap(short, long)]
+        output: Option<PathBuf>,
+    },
     /// Generates quarterly tax report of incomes.
+    #[cfg(not(feature = "sqlite"))]
     Report {
         /// Path to the statement csv file
         statement: PathBuf,
+        #[clap(short, long)]
+        #[arg(value_enum)]
+        #[arg(value_enum, default_value_t)]
+        format: ReportFormat,
+        #[clap(short, long)]
+        output: Option<PathBuf>,
+    },
+    #[cfg(feature = "sqlite")]
+    Report {
         #[clap(short, long)]
         #[arg(value_enum)]
         #[arg(value_enum, default_value_t)]

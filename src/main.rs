@@ -32,6 +32,7 @@ fn main() -> anyhow::Result<()> {
             let imported = db::save_all(&incomes)?;
             log::info!("Imported {} incomes", imported);
         }
+        #[cfg(not(feature = "sqlite"))]
         Command::Taxer { statement, output } => {
             let config = config::load_config()?;
             let filter = create_filters(&cli)?;
@@ -46,6 +47,17 @@ fn main() -> anyhow::Result<()> {
             };
             taxer::export_csv(&incomes, config.taxer(), writer)?;
         }
+        #[cfg(feature = "sqlite")]
+        Command::Taxer { output } => {
+            let config = config::load_config()?;
+            let incomes = db::find_all()?;
+            let writer: Box<dyn Write> = match output {
+                Some(path) => Box::new(BufWriter::new(File::create(path)?)),
+                None => Box::new(BufWriter::new(stdout())),
+            };
+            taxer::export_csv(&incomes, config.taxer(), writer)?;
+        }
+        #[cfg(not(feature = "sqlite"))]
         Command::Report {
             statement,
             format,
@@ -58,6 +70,20 @@ fn main() -> anyhow::Result<()> {
                 .with_context(|| format!("open statement file {}", stmt_path.display()))?;
 
             let incomes = universalbank::read_incomes(stmt_file, &filter)?;
+            let report = generate_report(incomes.into_iter(), config.tax());
+            let writer: Box<dyn Write> = match output {
+                Some(path) => Box::new(BufWriter::new(File::create(path)?)),
+                None => Box::new(BufWriter::new(stdout())),
+            };
+            match format {
+                ReportFormat::Console => report::console::pretty_print(&report, writer)?,
+                ReportFormat::Csv => report::csv::render_csv(&report, writer)?,
+            };
+        }
+        #[cfg(feature = "sqlite")]
+        Command::Report { format, output } => {
+            let config = config::load_config()?;
+            let incomes = db::find_all()?;
             let report = generate_report(incomes.into_iter(), config.tax());
             let writer: Box<dyn Write> = match output {
                 Some(path) => Box::new(BufWriter::new(File::create(path)?)),
