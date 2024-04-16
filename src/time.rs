@@ -25,7 +25,7 @@ impl Quarter {
         Quarter::from(date_ref.as_ref())
     }
 
-    fn index(&self) -> usize {
+    pub fn index(&self) -> usize {
         match self {
             Self::Q1 => 1,
             Self::Q2 => 2,

@@ -28,6 +28,10 @@ impl Income {
         self.date.date()
     }
 
+    pub fn datetime(&self) -> NaiveDateTime {
+        self.date
+    }
+
     pub fn amount(&self) -> f64 {
         self.amount
     }
