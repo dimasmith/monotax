@@ -35,6 +35,12 @@ pub enum Command {
         #[clap(short, long)]
         force: bool,
     },
+    /// Import incomes into the database
+    #[cfg(feature = "sqlite")]
+    Import {
+        /// Path to the statement csv file
+        statement: PathBuf,
+    },
     /// Export statement csv to taxer csv
     Taxer {
         /// Path to the statement csv file

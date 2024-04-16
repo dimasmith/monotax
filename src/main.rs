@@ -9,7 +9,7 @@ use env_logger::{Builder, Env};
 use monotax::filter::date::{QuarterFilter, YearFilter};
 use monotax::filter::{IncomeFilter, IncomePredicate};
 use monotax::report::generate_report;
-use monotax::{config, init, report, taxer, universalbank};
+use monotax::{config, db, init, report, taxer, universalbank};
 
 mod cli;
 
@@ -22,6 +22,16 @@ fn main() -> anyhow::Result<()> {
 
     match &cli.command {
         Command::Init { force } => init::init(*force)?,
+        #[cfg(feature = "sqlite")]
+        Command::Import { statement } => {
+            let filter = create_filters(&cli)?;
+            let stmt_path = statement.as_path();
+            let stmt_file = File::open(stmt_path)
+                .with_context(|| format!("open statement file {}", stmt_path.display()))?;
+            let incomes = universalbank::read_incomes(stmt_file, &filter)?;
+            let imported = db::save_all(&incomes)?;
+            log::info!("Imported {} incomes", imported);
+        }
         Command::Taxer { statement, output } => {
             let config = config::load_config()?;
             let filter = create_filters(&cli)?;
