@@ -63,6 +63,11 @@ pub fn create_default_config(force: bool) -> anyhow::Result<()> {
     Ok(())
 }
 
+pub fn base_directories() -> anyhow::Result<BaseDirectories> {
+    let dirs = BaseDirectories::with_prefix(APP_NAME)?;
+    Ok(dirs)
+}
+
 impl Config {
     pub fn taxer(&self) -> &TaxerImportConfig {
         &self.taxer
