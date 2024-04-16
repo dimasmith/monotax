@@ -1,9 +1,8 @@
 //! Initialize database schema.
 
+use super::config::database_path;
 use log::info;
 use rusqlite::Connection;
-
-use crate::config::base_directories;
 
 pub fn create_schema(conn: &mut Connection) -> anyhow::Result<()> {
     conn.execute(
@@ -21,8 +20,7 @@ pub fn create_schema(conn: &mut Connection) -> anyhow::Result<()> {
 }
 
 pub fn initialize_db_file() -> anyhow::Result<()> {
-    let base_dirs = base_directories()?;
-    let db_path = base_dirs.place_data_file("monotax.db")?;
+    let db_path = database_path()?;
     if !db_path.exists() {
         let mut conn = Connection::open(&db_path)?;
         create_schema(&mut conn)?;
