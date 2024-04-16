@@ -14,6 +14,6 @@ mod sqlite_setup {
             .unwrap();
         let tables = stmt.query_map([], |row| row.get(0)).unwrap();
         let tables: Vec<String> = tables.map(|r| r.unwrap()).collect();
-        assert_eq!(tables, vec!["incomes"]);
+        assert_eq!(tables, vec!["income"]);
     }
 }

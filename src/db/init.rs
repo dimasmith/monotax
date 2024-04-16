@@ -6,7 +6,7 @@ use rusqlite::Connection;
 
 pub fn create_schema(conn: &mut Connection) -> anyhow::Result<()> {
     conn.execute(
-        "CREATE TABLE IF NOT EXISTS incomes (
+        "CREATE TABLE IF NOT EXISTS income (
             date DATEtIME NOT NULL,
             amount DECIMAL(10,2) NOT NULL,
             description TEXT,

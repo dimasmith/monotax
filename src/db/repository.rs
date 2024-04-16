@@ -10,7 +10,7 @@ pub fn save_incomes(conn: &mut Connection, incomes: &[Income]) -> anyhow::Result
     let tx = conn.transaction()?;
     for income in income_records {
         updated += tx.execute(
-            "INSERT OR IGNORE INTO incomes (date, amount, description, year, quarter) VALUES (?1, ?2, ?3, ?4, ?5)",
+            "INSERT OR IGNORE INTO income (date, amount, description, year, quarter) VALUES (?1, ?2, ?3, ?4, ?5)",
             params![
                 income.date.to_string(),
                 income.amount,
@@ -26,9 +26,8 @@ pub fn save_incomes(conn: &mut Connection, incomes: &[Income]) -> anyhow::Result
 }
 
 pub fn load_all_incomes(conn: &mut Connection) -> anyhow::Result<Vec<Income>> {
-    let mut stmt = conn.prepare(
-        "SELECT date, amount, description, year, quarter FROM incomes order by date asc",
-    )?;
+    let mut stmt = conn
+        .prepare("SELECT date, amount, description, year, quarter FROM income order by date asc")?;
     let incomes_records = stmt.query_map([], |row| {
         let date_str: String = row.get(0)?;
         let date = NaiveDateTime::parse_from_str(&date_str, "%Y-%m-%d %H:%M:%S")
