@@ -29,9 +29,7 @@ pub fn load_all_incomes(conn: &mut Connection) -> anyhow::Result<Vec<Income>> {
     let mut stmt = conn
         .prepare("SELECT date, amount, description, year, quarter FROM income order by date asc")?;
     let incomes_records = stmt.query_map([], |row| {
-        let date_str: String = row.get(0)?;
-        let date = NaiveDateTime::parse_from_str(&date_str, "%Y-%m-%d %H:%M:%S")
-            .expect("broken db date format");
+        let date = row.get(0)?;
         let amount: f64 = row.get(1)?;
         let description: String = row.get(2)?;
         Ok(IncomeRecord::new(date, amount, description))
