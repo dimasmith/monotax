@@ -4,9 +4,12 @@ mod sqlite_repository {
     use monotax::{
         db::{
             self,
-            repository::{load_all_incomes, save_incomes},
+            criteria::Criteria,
+            repository::{find_incomes, load_all_incomes, save_incomes},
         },
+        filter::date::{QuarterFilter, YearFilter},
         income::Income,
+        time::Quarter,
     };
     use rusqlite::Connection;
 
@@ -55,5 +58,150 @@ mod sqlite_repository {
         // incomes must be ordered by date
         assert_eq!(incomes[0], income1);
         assert_eq!(incomes[1], income2);
+    }
+
+    #[test]
+    fn filter_incomes_on_quaters() {
+        let mut conn = Connection::open_in_memory().unwrap();
+        db::init::create_schema(&mut conn).unwrap();
+
+        let q1_2024 = income("2024-01-13 14:00:00", 125.0);
+        let q2_2024 = income("2024-04-13 14:00:00", 225.0);
+        let q3_2024 = income("2024-07-13 14:00:00", 325.0);
+        let q4_2024 = income("2024-10-13 14:00:00", 425.0);
+        let incomes = vec![
+            q1_2024.clone(),
+            q2_2024.clone(),
+            q3_2024.clone(),
+            q4_2024.clone(),
+        ];
+
+        let _ = save_incomes(&mut conn, &incomes).unwrap();
+
+        let q3_only = QuarterFilter::Only(Quarter::Q3);
+        let filtered_incomes =
+            find_incomes(&mut conn, &Criteria::And(vec![Box::new(q3_only)])).unwrap();
+        assert_eq!(filtered_incomes, vec![q3_2024.clone()]);
+
+        let q2_ytd = QuarterFilter::Ytd(Quarter::Q2);
+        let filtered_incomes =
+            find_incomes(&mut conn, &Criteria::And(vec![Box::new(q2_ytd)])).unwrap();
+        assert_eq!(filtered_incomes, vec![q1_2024.clone(), q2_2024.clone()]);
+
+        let q_any = QuarterFilter::Any;
+        let filtered_incomes =
+            find_incomes(&mut conn, &Criteria::And(vec![Box::new(q_any)])).unwrap();
+        assert_eq!(
+            filtered_incomes,
+            vec![
+                q1_2024.clone(),
+                q2_2024.clone(),
+                q3_2024.clone(),
+                q4_2024.clone()
+            ]
+        );
+    }
+
+    #[test]
+    fn filter_incomes_on_years() {
+        let mut conn = Connection::open_in_memory().unwrap();
+        db::init::create_schema(&mut conn).unwrap();
+
+        let y2023 = income("2023-01-13 14:00:00", 125.0);
+        let y2024 = income("2024-01-13 14:00:00", 225.0);
+        let y2025 = income("2025-01-13 14:00:00", 325.0);
+        let incomes = vec![y2023.clone(), y2024.clone(), y2025.clone()];
+
+        let _ = save_incomes(&mut conn, &incomes).unwrap();
+
+        let y2024_only = YearFilter::One(2024);
+        let filtered_incomes =
+            find_incomes(&mut conn, &Criteria::And(vec![Box::new(y2024_only)])).unwrap();
+        assert_eq!(filtered_incomes, vec![y2024.clone()]);
+
+        let y_any = YearFilter::Any;
+        let filtered_incomes =
+            find_incomes(&mut conn, &Criteria::And(vec![Box::new(y_any)])).unwrap();
+        assert_eq!(
+            filtered_incomes,
+            vec![y2023.clone(), y2024.clone(), y2025.clone()]
+        );
+    }
+
+    #[test]
+    fn filter_incomes_on_quaters_and_years() {
+        let mut conn = Connection::open_in_memory().unwrap();
+        db::init::create_schema(&mut conn).unwrap();
+
+        let q1_2023 = income("2023-01-13 14:00:00", 125.0);
+        let q2_2023 = income("2023-04-13 14:00:00", 225.0);
+        let q3_2023 = income("2023-07-13 14:00:00", 325.0);
+        let q4_2023 = income("2023-10-13 14:00:00", 425.0);
+        let q1_2024 = income("2024-01-13 14:00:00", 125.0);
+        let q2_2024 = income("2024-04-13 14:00:00", 225.0);
+        let q3_2024 = income("2024-07-13 14:00:00", 325.0);
+        let q4_2024 = income("2024-10-13 14:00:00", 425.0);
+        let incomes = vec![
+            q1_2023.clone(),
+            q2_2023.clone(),
+            q3_2023.clone(),
+            q4_2023.clone(),
+            q1_2024.clone(),
+            q2_2024.clone(),
+            q3_2024.clone(),
+            q4_2024.clone(),
+        ];
+
+        let _ = save_incomes(&mut conn, &incomes).unwrap();
+
+        let q3_2024_only = QuarterFilter::Only(Quarter::Q3);
+        let y2024_only = YearFilter::One(2024);
+        let filtered_incomes = find_incomes(
+            &mut conn,
+            &Criteria::And(vec![Box::new(q3_2024_only), Box::new(y2024_only)]),
+        )
+        .unwrap();
+        assert_eq!(filtered_incomes, vec![q3_2024.clone()]);
+
+        // test for ytd q3 in 2023
+        let q3_ytd_2023 = QuarterFilter::Ytd(Quarter::Q3);
+        let y2023_only = YearFilter::One(2023);
+        let filtered_incomes = find_incomes(
+            &mut conn,
+            &Criteria::And(vec![Box::new(q3_ytd_2023), Box::new(y2023_only)]),
+        );
+        assert_eq!(
+            filtered_incomes.unwrap(),
+            vec![q1_2023.clone(), q2_2023.clone(), q3_2023.clone()]
+        );
+
+        // test for q4 in any year
+        let q4_only = QuarterFilter::Only(Quarter::Q4);
+        let y_any = YearFilter::Any;
+        let filtered_incomes = find_incomes(
+            &mut conn,
+            &Criteria::And(vec![Box::new(q4_only), Box::new(y_any)]),
+        );
+        assert_eq!(
+            filtered_incomes.unwrap(),
+            vec![q4_2023.clone(), q4_2024.clone()]
+        );
+
+        // test for whole year 2024 regardless of quarter
+        let y2024_only = YearFilter::One(2024);
+        let q_ay = QuarterFilter::Any;
+        let filtered_incomes = find_incomes(
+            &mut conn,
+            &Criteria::And(vec![Box::new(q_ay), Box::new(y2024_only)]),
+        );
+        assert_eq!(
+            filtered_incomes.unwrap(),
+            vec![
+                q1_2024.clone(),
+                q2_2024.clone(),
+                q3_2024.clone(),
+                q4_2024.clone()
+            ]
+        );
     }
 }

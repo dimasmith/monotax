@@ -1,7 +1,9 @@
 use chrono::{Datelike, NaiveDateTime};
-use rusqlite::{params, Connection};
+use rusqlite::{params, Connection, ToSql};
 
 use crate::{income::Income, time::Quarter};
+
+use super::criteria::Criteria;
 
 pub fn save_incomes(conn: &mut Connection, incomes: &[Income]) -> anyhow::Result<usize> {
     let income_records = incomes.iter().map(IncomeRecord::from);
@@ -29,6 +31,37 @@ pub fn load_all_incomes(conn: &mut Connection) -> anyhow::Result<Vec<Income>> {
     let mut stmt = conn
         .prepare("SELECT date, amount, description, year, quarter FROM income order by date asc")?;
     let incomes_records = stmt.query_map([], |row| {
+        let date = row.get(0)?;
+        let amount: f64 = row.get(1)?;
+        let description: String = row.get(2)?;
+        Ok(IncomeRecord::new(date, amount, description))
+    })?;
+
+    let incomes: Vec<Income> = incomes_records
+        .map(|r| r.unwrap().into_income())
+        .collect::<Vec<_>>();
+
+    Ok(incomes)
+}
+
+pub fn find_incomes(conn: &mut Connection, criteria: &Criteria) -> anyhow::Result<Vec<Income>> {
+    let where_clause = criteria.where_clause();
+    let query = if where_clause.is_empty() {
+        "SELECT date, amount, description, year, quarter FROM income ORDER BY date ASC".to_string()
+    } else {
+        format!(
+            "SELECT date, amount, description, year, quarter FROM income WHERE {} ORDER BY date ASC",
+            where_clause
+        )
+    };
+    let params = criteria.params();
+    let params: Vec<(&str, &dyn ToSql)> = params
+        .iter()
+        .map(|(name, value)| (*name, value as &dyn ToSql))
+        .collect();
+
+    let mut stmt = conn.prepare(&query)?;
+    let incomes_records = stmt.query_map(params.as_slice(), |row| {
         let date = row.get(0)?;
         let amount: f64 = row.get(1)?;
         let description: String = row.get(2)?;

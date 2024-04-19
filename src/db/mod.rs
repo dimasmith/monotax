@@ -7,6 +7,8 @@ use crate::income::Income;
 use self::config::connect;
 
 mod config;
+pub mod criteria;
+mod date;
 pub mod init;
 pub mod repository;
 
