@@ -1,7 +1,8 @@
 use std::path::PathBuf;
 
-use clap::{Args, Parser, Subcommand, ValueEnum};
-use monotax::time::Quarter;
+use clap::{Parser, Subcommand, ValueEnum};
+
+use self::filter::FilterArgs;
 
 #[cfg(feature = "sqlite")]
 pub mod criterion;
@@ -12,30 +13,6 @@ pub mod predicate;
 pub struct Cli {
     #[clap(subcommand)]
     pub command: Command,
-
-    #[command(flatten)]
-    pub filter: FilterArgs,
-}
-
-#[derive(Debug, Args, Clone)]
-pub struct FilterArgs {
-    /// A quarter to filter incomes. Optional.
-    #[clap(short, long)]
-    #[arg(value_enum)]
-    pub quarter: Option<Quarter>,
-    #[clap(long)]
-    #[arg(value_enum, default_value_t)]
-    pub include_quarters: IncludeQuarters,
-
-    /// What years to include in the report.
-    #[clap(long)]
-    #[arg(value_enum, default_value_t)]
-    pub include_years: IncludeYears,
-
-    /// A specific year to filter incomes. Optional.
-    #[clap(short, long)]
-    #[arg(value_enum)]
-    pub year: Option<i32>,
 }
 
 #[derive(Debug, Subcommand)]
@@ -51,6 +28,8 @@ pub enum Command {
     Import {
         /// Path to the statement csv file
         statement: PathBuf,
+        #[command(flatten)]
+        filter: FilterArgs,
     },
     /// Export statement csv to taxer csv
     #[cfg(not(feature = "sqlite"))]
@@ -59,12 +38,16 @@ pub enum Command {
         statement: PathBuf,
         #[clap(short, long)]
         output: Option<PathBuf>,
+        #[command(flatten)]
+        filter: FilterArgs,
     },
     #[cfg(feature = "sqlite")]
     Taxer {
         /// Output file for taxer csv
         #[clap(short, long)]
         output: Option<PathBuf>,
+        #[command(flatten)]
+        filter: FilterArgs,
     },
     /// Generates quarterly tax report of incomes.
     #[cfg(not(feature = "sqlite"))]
@@ -77,6 +60,8 @@ pub enum Command {
         format: ReportFormat,
         #[clap(short, long)]
         output: Option<PathBuf>,
+        #[command(flatten)]
+        filter: FilterArgs,
     },
     #[cfg(feature = "sqlite")]
     Report {
@@ -86,6 +71,8 @@ pub enum Command {
         format: ReportFormat,
         #[clap(short, long)]
         output: Option<PathBuf>,
+        #[command(flatten)]
+        filter: FilterArgs,
     },
 }
 

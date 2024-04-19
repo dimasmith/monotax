@@ -30,8 +30,8 @@ fn main() -> anyhow::Result<()> {
     match &cli.command {
         Command::Init { force } => init::init(*force)?,
         #[cfg(feature = "sqlite")]
-        Command::Import { statement } => {
-            let predicates = build_predicates(&cli)?;
+        Command::Import { statement, filter } => {
+            let predicates = build_predicates(filter)?;
             let stmt_path = statement.as_path();
             let stmt_file = File::open(stmt_path)
                 .with_context(|| format!("open statement file {}", stmt_path.display()))?;
@@ -40,9 +40,13 @@ fn main() -> anyhow::Result<()> {
             log::info!("Imported {} incomes", imported);
         }
         #[cfg(not(feature = "sqlite"))]
-        Command::Taxer { statement, output } => {
+        Command::Taxer {
+            statement,
+            output,
+            filter,
+        } => {
             let config = config::load_config()?;
-            let predicates = build_predicates(&cli)?;
+            let predicates = build_predicates(filter)?;
             let stmt_path = statement.as_path();
             let stmt_file = File::open(stmt_path)
                 .with_context(|| format!("open statement file {}", stmt_path.display()))?;
@@ -55,9 +59,9 @@ fn main() -> anyhow::Result<()> {
             taxer::export_csv(&incomes, config.taxer(), writer)?;
         }
         #[cfg(feature = "sqlite")]
-        Command::Taxer { output } => {
+        Command::Taxer { output, filter } => {
             let config = config::load_config()?;
-            let criteria = build_criteria(&cli)?;
+            let criteria = build_criteria(filter)?;
             let incomes = db::find_by_criteria(&Criteria::And(criteria))?;
             let writer: Box<dyn Write> = match output {
                 Some(path) => Box::new(BufWriter::new(File::create(path)?)),
@@ -70,9 +74,10 @@ fn main() -> anyhow::Result<()> {
             statement,
             format,
             output,
+            filter,
         } => {
             let config = config::load_config()?;
-            let predicates = build_predicates(&cli)?;
+            let predicates = build_predicates(filter)?;
             let stmt_path = statement.as_path();
             let stmt_file = File::open(stmt_path)
                 .with_context(|| format!("open statement file {}", stmt_path.display()))?;
@@ -89,9 +94,13 @@ fn main() -> anyhow::Result<()> {
             };
         }
         #[cfg(feature = "sqlite")]
-        Command::Report { format, output } => {
+        Command::Report {
+            format,
+            output,
+            filter,
+        } => {
             let config = config::load_config()?;
-            let criteria = build_criteria(&cli)?;
+            let criteria = build_criteria(filter)?;
             let incomes = db::find_by_criteria(&Criteria::And(criteria))?;
             let report = generate_report(incomes.into_iter(), config.tax());
             let writer: Box<dyn Write> = match output {

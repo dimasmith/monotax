@@ -1,8 +1,31 @@
-use monotax::filter::date::{QuarterFilter, YearFilter};
+use clap::Args;
+use monotax::{
+    filter::date::{QuarterFilter, YearFilter},
+    time::Quarter,
+};
 
 use crate::cli::{IncludeQuarters, IncludeYears};
 
-use super::FilterArgs;
+#[derive(Debug, Args, Clone)]
+pub struct FilterArgs {
+    /// A quarter to filter incomes. Optional.
+    #[clap(short, long)]
+    #[arg(value_enum)]
+    pub quarter: Option<Quarter>,
+    #[clap(long)]
+    #[arg(value_enum, default_value_t)]
+    pub include_quarters: IncludeQuarters,
+
+    /// What years to include in the report.
+    #[clap(long)]
+    #[arg(value_enum, default_value_t)]
+    pub include_years: IncludeYears,
+
+    /// A specific year to filter incomes. Optional.
+    #[clap(short, long)]
+    #[arg(value_enum)]
+    pub year: Option<i32>,
+}
 
 pub fn build_quarter_filter(cli: &FilterArgs) -> QuarterFilter {
     QuarterFilter::from(cli)
