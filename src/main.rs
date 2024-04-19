@@ -4,10 +4,13 @@ use std::io::{prelude::*, stdout, BufWriter};
 use anyhow::Context;
 
 use clap::Parser;
-use cli::{Cli, Command, IncludeQuarters, IncludeYears, ReportFormat};
+use cli::criterion::build_criteria;
+use cli::predicate::build_predicates;
+use cli::ReportFormat;
+use cli::{Cli, Command};
 use env_logger::{Builder, Env};
-use monotax::filter::date::{QuarterFilter, YearFilter};
-use monotax::filter::{IncomeFilter, IncomePredicate};
+use monotax::db::criteria::Criteria;
+use monotax::filter::IncomeFilter;
 use monotax::report::generate_report;
 use monotax::{config, db, init, report, taxer, universalbank};
 
@@ -50,7 +53,8 @@ fn main() -> anyhow::Result<()> {
         #[cfg(feature = "sqlite")]
         Command::Taxer { output } => {
             let config = config::load_config()?;
-            let incomes = db::find_all()?;
+            let criteria = build_criteria(&cli)?;
+            let incomes = db::find_by_criteria(&Criteria::And(criteria))?;
             let writer: Box<dyn Write> = match output {
                 Some(path) => Box::new(BufWriter::new(File::create(path)?)),
                 None => Box::new(BufWriter::new(stdout())),
@@ -83,7 +87,8 @@ fn main() -> anyhow::Result<()> {
         #[cfg(feature = "sqlite")]
         Command::Report { format, output } => {
             let config = config::load_config()?;
-            let incomes = db::find_all()?;
+            let criteria = build_criteria(&cli)?;
+            let incomes = db::find_by_criteria(&Criteria::And(criteria))?;
             let report = generate_report(incomes.into_iter(), config.tax());
             let writer: Box<dyn Write> = match output {
                 Some(path) => Box::new(BufWriter::new(File::create(path)?)),
@@ -100,25 +105,5 @@ fn main() -> anyhow::Result<()> {
 }
 
 fn create_filters(cli: &Cli) -> anyhow::Result<IncomeFilter> {
-    let include_quarters = cli.include_quarters;
-    let quarter = cli.quarter;
-
-    let quarter_filter = match (include_quarters, quarter) {
-        (IncludeQuarters::Any, None) => QuarterFilter::Any,
-        (IncludeQuarters::Any, Some(q)) => QuarterFilter::Only(q),
-        (IncludeQuarters::One, None) => QuarterFilter::Current,
-        (IncludeQuarters::One, Some(q)) => QuarterFilter::Only(q),
-        (IncludeQuarters::Ytd, None) => QuarterFilter::CurrentToDate,
-        (IncludeQuarters::Ytd, Some(q)) => QuarterFilter::Ytd(q),
-    };
-    let year_filter = match (cli.include_years, cli.year) {
-        (IncludeYears::All, None) => YearFilter::Any,
-        (IncludeYears::All, Some(y)) => YearFilter::One(y),
-        (IncludeYears::One, None) => YearFilter::Current,
-        (IncludeYears::One, Some(y)) => YearFilter::One(y),
-        (IncludeYears::Current, None) => YearFilter::Current,
-        (IncludeYears::Current, Some(y)) => YearFilter::One(y),
-    };
-    let predicates = vec![year_filter.boxed(), quarter_filter.boxed()];
-    Ok(IncomeFilter::new(predicates))
+    Ok(IncomeFilter::new(build_predicates(cli)?))
 }

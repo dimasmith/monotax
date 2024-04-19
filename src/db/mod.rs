@@ -4,7 +4,7 @@
 
 use crate::income::Income;
 
-use self::config::connect;
+use self::{config::connect, criteria::Criteria};
 
 mod config;
 pub mod criteria;
@@ -20,4 +20,9 @@ pub fn save_all(incomes: &[Income]) -> anyhow::Result<usize> {
 pub fn find_all() -> anyhow::Result<Vec<Income>> {
     let mut conn = connect()?;
     repository::load_all_incomes(&mut conn)
+}
+
+pub fn find_by_criteria(criteria: &Criteria) -> anyhow::Result<Vec<Income>> {
+    let mut conn = connect()?;
+    repository::find_incomes(&mut conn, criteria)
 }

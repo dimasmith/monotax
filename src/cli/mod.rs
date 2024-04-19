@@ -3,6 +3,10 @@ use std::path::PathBuf;
 use clap::{Parser, Subcommand, ValueEnum};
 use monotax::time::Quarter;
 
+pub mod criterion;
+pub mod filter;
+pub mod predicate;
+
 #[derive(Debug, Parser)]
 pub struct Cli {
     #[clap(subcommand)]
