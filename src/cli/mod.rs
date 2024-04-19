@@ -1,6 +1,6 @@
 use std::path::PathBuf;
 
-use clap::{Parser, Subcommand, ValueEnum};
+use clap::{Args, Parser, Subcommand, ValueEnum};
 use monotax::time::Quarter;
 
 #[cfg(feature = "sqlite")]
@@ -13,6 +13,12 @@ pub struct Cli {
     #[clap(subcommand)]
     pub command: Command,
 
+    #[command(flatten)]
+    pub filter: FilterArgs,
+}
+
+#[derive(Debug, Args, Clone)]
+pub struct FilterArgs {
     /// A quarter to filter incomes. Optional.
     #[clap(short, long)]
     #[arg(value_enum)]

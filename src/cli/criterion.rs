@@ -6,7 +6,8 @@ use super::{
 };
 
 pub fn build_criteria(cli: &Cli) -> anyhow::Result<Vec<Box<dyn Criterion>>> {
-    let quarter_filter = build_quarter_filter(cli);
-    let year_filter = build_year_filter(cli);
+    let filter_args = &cli.filter;
+    let quarter_filter = build_quarter_filter(filter_args);
+    let year_filter = build_year_filter(filter_args);
     Ok(vec![Box::new(quarter_filter), Box::new(year_filter)])
 }

@@ -2,18 +2,18 @@ use monotax::filter::date::{QuarterFilter, YearFilter};
 
 use crate::cli::{IncludeQuarters, IncludeYears};
 
-use super::Cli;
+use super::FilterArgs;
 
-pub fn build_quarter_filter(cli: &Cli) -> QuarterFilter {
+pub fn build_quarter_filter(cli: &FilterArgs) -> QuarterFilter {
     QuarterFilter::from(cli)
 }
 
-pub fn build_year_filter(cli: &Cli) -> YearFilter {
+pub fn build_year_filter(cli: &FilterArgs) -> YearFilter {
     YearFilter::from(cli)
 }
 
-impl From<&Cli> for QuarterFilter {
-    fn from(cli: &Cli) -> Self {
+impl From<&FilterArgs> for QuarterFilter {
+    fn from(cli: &FilterArgs) -> Self {
         match (cli.include_quarters, cli.quarter) {
             (IncludeQuarters::Any, None) => QuarterFilter::Any,
             (IncludeQuarters::Any, Some(q)) => QuarterFilter::Only(q),
@@ -25,8 +25,8 @@ impl From<&Cli> for QuarterFilter {
     }
 }
 
-impl From<&Cli> for YearFilter {
-    fn from(cli: &Cli) -> Self {
+impl From<&FilterArgs> for YearFilter {
+    fn from(cli: &FilterArgs) -> Self {
         match (cli.include_years, cli.year) {
             (IncludeYears::All, None) => YearFilter::Any,
             (IncludeYears::All, Some(y)) => YearFilter::One(y),
