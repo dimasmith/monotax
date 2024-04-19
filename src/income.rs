@@ -16,6 +16,14 @@ impl Income {
         }
     }
 
+    pub fn from_date(date: NaiveDate, amount: f64) -> Self {
+        Self {
+            date: date.and_hms_opt(0, 0, 0).unwrap(),
+            amount,
+            comment: None,
+        }
+    }
+
     pub fn with_comment(self, comment: String) -> Self {
         Income {
             date: self.date,

@@ -13,7 +13,7 @@ pub mod date;
 /// ```rust
 /// # use monotax::income::Income;
 /// # use monotax::filter::IncomePredicate;
-/// # use chrono::NaiveDateTime;
+/// # use chrono::{NaiveDateTime, NaiveDate};
 /// struct LowerAmountPredicate {
 ///    max_amount: f64,
 /// }
@@ -24,8 +24,8 @@ pub mod date;
 ///   }
 /// }
 ///
-/// let high_income = Income::new(NaiveDate::from_ymd_opt(2024, 04, 04).unwrap(), 1000.0);
-/// let low_income = Income::new(NaiveDate::from_ymd_opt(2024, 04, 04).unwrap(), 200.0);
+/// let high_income = Income::from_date(NaiveDate::from_ymd_opt(2024, 04, 04).unwrap(), 1000.0);
+/// let low_income = Income::from_date(NaiveDate::from_ymd_opt(2024, 04, 04).unwrap(), 200.0);
 /// let lower_than_500 = LowerAmountPredicate { max_amount: 500.0 };
 ///
 /// assert!(!lower_than_500.test(&high_income), "High income should not pass the filter");
