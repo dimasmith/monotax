@@ -3,6 +3,7 @@ use std::path::PathBuf;
 use clap::{Parser, Subcommand, ValueEnum};
 use monotax::time::Quarter;
 
+#[cfg(feature = "sqlite")]
 pub mod criterion;
 pub mod filter;
 pub mod predicate;

@@ -13,7 +13,7 @@ pub mod date;
 /// ```rust
 /// # use monotax::income::Income;
 /// # use monotax::filter::IncomePredicate;
-/// # use chrono::NaiveDate;
+/// # use chrono::NaiveDateTime;
 /// struct LowerAmountPredicate {
 ///    max_amount: f64,
 /// }

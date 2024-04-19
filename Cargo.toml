@@ -7,7 +7,7 @@ edition = "2021"
 
 [features]
 # TODO: disable sqlite feature by default before merging to mainline
-default = ["sqlite"]
+default = []
 sqlite = ["rusqlite"]
 
 [dependencies]
