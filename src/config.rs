@@ -1,12 +1,44 @@
 //! Application configuration
 
+use directories::ProjectDirs;
+use std::fs;
 use std::fs::File;
+use std::path::{Path, PathBuf};
 
 use log::{info, warn};
 use serde::{Deserialize, Serialize};
-use xdg::BaseDirectories;
 
 const APP_NAME: &str = "monotax";
+
+pub struct ConfigurationDirs {
+    config_dir: PathBuf,
+    data_dir: PathBuf,
+}
+
+impl ConfigurationDirs {
+    fn new(config_dir: PathBuf, data_dir: PathBuf) -> Self {
+        Self {
+            config_dir,
+            data_dir,
+        }
+    }
+}
+
+impl ConfigurationDirs {
+    pub fn place_config_file<P: AsRef<Path>>(&self, path: P) -> anyhow::Result<PathBuf> {
+        fs::create_dir_all(&self.config_dir)?;
+        let mut file_path = self.config_dir.clone();
+        file_path.push(path);
+        Ok(file_path)
+    }
+
+    pub fn place_data_file<P: AsRef<Path>>(&self, path: P) -> anyhow::Result<PathBuf> {
+        fs::create_dir_all(&self.data_dir)?;
+        let mut file_path = self.data_dir.clone();
+        file_path.push(path);
+        Ok(file_path)
+    }
+}
 
 #[derive(Debug, Serialize, Deserialize, Default)]
 pub struct Config {
@@ -27,7 +59,7 @@ pub struct TaxerImportConfig {
 }
 
 pub fn load_config() -> anyhow::Result<Config> {
-    let xdg_dirs = BaseDirectories::with_prefix(APP_NAME)?;
+    let xdg_dirs = base_directories()?;
     let config_file_path = xdg_dirs.place_config_file("config.toml")?;
     if !config_file_path.exists() {
         warn!(
@@ -44,7 +76,7 @@ pub fn load_config() -> anyhow::Result<Config> {
 }
 
 pub fn create_default_config(force: bool) -> anyhow::Result<()> {
-    let xdg_dirs = BaseDirectories::with_prefix(APP_NAME)?;
+    let xdg_dirs = base_directories()?;
     let config_file_path = xdg_dirs.place_config_file("config.toml")?;
     if config_file_path.exists() && !force {
         warn!(
@@ -63,8 +95,14 @@ pub fn create_default_config(force: bool) -> anyhow::Result<()> {
     Ok(())
 }
 
-pub fn base_directories() -> anyhow::Result<BaseDirectories> {
-    let dirs = BaseDirectories::with_prefix(APP_NAME)?;
+pub fn base_directories() -> anyhow::Result<ConfigurationDirs> {
+    let Some(project_dirs) = ProjectDirs::from("", "", APP_NAME) else {
+        anyhow::bail!("cannot retrieve configuration directories")
+    };
+    let dirs = ConfigurationDirs::new(
+        project_dirs.config_dir().to_path_buf(),
+        project_dirs.data_dir().to_path_buf(),
+    );
     Ok(dirs)
 }
 
