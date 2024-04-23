@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## 0.1.1 - 2024-04-23
+#### Bug Fixes
+- **(win)** replace config library directory - (140c61c) - Dmytro Kovalchuk
+
+- - -
+
 ## 0.1.0 - 2024-04-23
 #### Bug Fixes
 - **(cli)** use default versions of optional args - (1963f05) - Dmytro Kovalchuk

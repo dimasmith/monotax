@@ -1,9 +1,9 @@
 //! Application configuration
 
+use directories::ProjectDirs;
 use std::fs;
 use std::fs::File;
 use std::path::{Path, PathBuf};
-use directories::ProjectDirs;
 
 use log::{info, warn};
 use serde::{Deserialize, Serialize};
@@ -99,7 +99,10 @@ pub fn base_directories() -> anyhow::Result<ConfigurationDirs> {
     let Some(project_dirs) = ProjectDirs::from("", "", APP_NAME) else {
         anyhow::bail!("cannot retrieve configuration directories")
     };
-    let dirs = ConfigurationDirs::new(project_dirs.config_dir().to_path_buf(), project_dirs.data_dir().to_path_buf());
+    let dirs = ConfigurationDirs::new(
+        project_dirs.config_dir().to_path_buf(),
+        project_dirs.data_dir().to_path_buf(),
+    );
     Ok(dirs)
 }
 
