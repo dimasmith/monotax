@@ -10,6 +10,7 @@ pub mod filter;
 pub mod predicate;
 
 #[derive(Debug, Parser)]
+#[command(version, about, long_about)]
 pub struct Cli {
     #[clap(subcommand)]
     pub command: Command,
@@ -41,6 +42,7 @@ pub enum Command {
         #[command(flatten)]
         filter: FilterArgs,
     },
+    /// Export statement csv to taxer csv
     #[cfg(feature = "sqlite")]
     Taxer {
         /// Output file for taxer csv
@@ -63,6 +65,7 @@ pub enum Command {
         #[command(flatten)]
         filter: FilterArgs,
     },
+    /// Generates quarterly tax report of incomes.
     #[cfg(feature = "sqlite")]
     Report {
         #[clap(short, long)]
