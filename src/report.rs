@@ -10,7 +10,14 @@ pub mod console;
 pub mod csv;
 
 #[derive(Debug, Clone, PartialEq)]
-pub struct QuarterReport {
+pub struct QuarterlyReport {
+    quarters: Vec<QuarterReportLine>,
+    total_income: f64,
+    total_tax: f64,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct QuarterReportLine {
     year: i32,
     quarter: Quarter,
     total_income: f64,
@@ -19,11 +26,42 @@ pub struct QuarterReport {
     cumulative_tax: f64,
 }
 
-pub fn generate_report<I>(incomes: I, tax_props: &TaxConfig) -> Vec<QuarterReport>
+impl QuarterlyReport {
+    pub fn build_report<I>(incomes: I, tax_props: &TaxConfig) -> Self
+    where
+        I: IntoIterator<Item = Income>,
+    {
+        let quarters = generate_report(incomes, tax_props);
+        // todo: optimize this calculations
+        let total_income = quarters.iter().map(|q| q.total_income()).sum();
+        let total_tax = quarters.iter().map(|q| q.total_tax()).sum();
+        Self {
+            quarters,
+            total_income,
+            total_tax,
+        }
+    }
+}
+
+impl QuarterlyReport {
+    pub fn quarters(&self) -> &[QuarterReportLine] {
+        &self.quarters
+    }
+
+    pub fn total_income(&self) -> f64 {
+        self.total_income
+    }
+
+    pub fn total_tax(&self) -> f64 {
+        self.total_tax
+    }
+}
+
+fn generate_report<I>(incomes: I, tax_props: &TaxConfig) -> Vec<QuarterReportLine>
 where
-    I: Iterator<Item = Income>,
+    I: IntoIterator<Item = Income>,
 {
-    let mut incomes = incomes.collect::<Vec<_>>();
+    let mut incomes = incomes.into_iter().collect::<Vec<_>>();
     incomes.sort();
     let mut incomes = incomes.iter();
 
@@ -32,7 +70,7 @@ where
     };
 
     let tax_rate = tax_props.tax_rate();
-    let mut prev_report = QuarterReport::income(income, tax_rate);
+    let mut prev_report = QuarterReportLine::income(income, tax_rate);
 
     let mut reports = vec![];
     for income in incomes {
@@ -40,7 +78,7 @@ where
         if prev_report.is_for_date(&date) {
             prev_report.add_income(income, tax_rate);
         } else {
-            let mut new_report = QuarterReport::income(income, tax_rate);
+            let mut new_report = QuarterReportLine::income(income, tax_rate);
             new_report.add_cumulative_values(&prev_report);
             reports.push(prev_report);
             prev_report = new_report;
@@ -50,7 +88,7 @@ where
     reports
 }
 
-impl QuarterReport {
+impl QuarterReportLine {
     fn income(income: &Income, tax: f64) -> Self {
         let date = income.date();
         let year = date.year();
@@ -83,7 +121,7 @@ impl QuarterReport {
         self.add_tax(amount, tax_rate)
     }
 
-    fn add_cumulative_values(&mut self, prev: &QuarterReport) {
+    fn add_cumulative_values(&mut self, prev: &QuarterReportLine) {
         if self.year != prev.year {
             return;
         }
@@ -103,7 +141,7 @@ impl QuarterReport {
     }
 }
 
-impl QuarterReport {
+impl QuarterReportLine {
     pub fn year(&self) -> i32 {
         self.year
     }
@@ -146,11 +184,11 @@ mod tests {
         let q1_income = Income::new(date(2024, 2, 5), 275000.0);
         let tax_config = TaxConfig::new(0.05);
 
-        let report = generate_report(vec![q1_income].into_iter(), &tax_config);
+        let report = generate_report(vec![q1_income], &tax_config);
 
         assert_eq!(
             &report,
-            &[QuarterReport {
+            &[QuarterReportLine {
                 year: 2024,
                 quarter: Quarter::Q1,
                 total_income: 275000.0,
@@ -170,7 +208,7 @@ mod tests {
 
         assert_eq!(
             &report,
-            &[QuarterReport {
+            &[QuarterReportLine {
                 year: 2024,
                 quarter: Quarter::Q1,
                 total_income: 2500.0,
@@ -195,7 +233,7 @@ mod tests {
         assert_eq!(
             &report,
             &[
-                QuarterReport {
+                QuarterReportLine {
                     year: 2024,
                     quarter: Quarter::Q1,
                     total_income: 2500.0,
@@ -203,7 +241,7 @@ mod tests {
                     total_tax: 250.0,
                     cumulative_tax: 250.0,
                 },
-                QuarterReport {
+                QuarterReportLine {
                     year: 2024,
                     quarter: Quarter::Q2,
                     total_income: 2000.0,
@@ -225,7 +263,7 @@ mod tests {
         assert_eq!(
             &report,
             &[
-                QuarterReport {
+                QuarterReportLine {
                     year: 2023,
                     quarter: Quarter::Q4,
                     total_income: 1000.0,
@@ -233,7 +271,7 @@ mod tests {
                     total_tax: 100.0,
                     cumulative_tax: 100.0,
                 },
-                QuarterReport {
+                QuarterReportLine {
                     year: 2024,
                     quarter: Quarter::Q1,
                     total_income: 1500.0,

@@ -15,7 +15,7 @@ use monotax::db;
 #[cfg(feature = "sqlite")]
 use monotax::db::criteria::Criteria;
 use monotax::filter::IncomeFilter;
-use monotax::report::generate_report;
+use monotax::report::QuarterlyReport;
 use monotax::{config, init, report, taxer, universalbank};
 
 mod cli;
@@ -83,7 +83,7 @@ fn main() -> anyhow::Result<()> {
                 .with_context(|| format!("open statement file {}", stmt_path.display()))?;
 
             let incomes = universalbank::read_incomes(stmt_file, &IncomeFilter::new(predicates))?;
-            let report = generate_report(incomes.into_iter(), config.tax());
+            let report = QuarterlyReport::build_report(incomes, config.tax());
             let writer: Box<dyn Write> = match output {
                 Some(path) => Box::new(BufWriter::new(File::create(path)?)),
                 None => Box::new(BufWriter::new(stdout())),
@@ -102,7 +102,7 @@ fn main() -> anyhow::Result<()> {
             let config = config::load_config()?;
             let criteria = build_criteria(filter)?;
             let incomes = db::find_by_criteria(&Criteria::And(criteria))?;
-            let report = generate_report(incomes.into_iter(), config.tax());
+            let report = QuarterlyReport::build_report(incomes, config.tax());
             let writer: Box<dyn Write> = match output {
                 Some(path) => Box::new(BufWriter::new(File::create(path)?)),
                 None => Box::new(BufWriter::new(stdout())),
