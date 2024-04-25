@@ -6,6 +6,7 @@ use anyhow::Context;
 use clap::Parser;
 #[cfg(feature = "sqlite")]
 use cli::criterion::build_criteria;
+use cli::payment::PaymentCommands;
 use cli::predicate::build_predicates;
 use cli::ReportFormat;
 use cli::{Cli, Command};
@@ -116,18 +117,20 @@ fn main() -> anyhow::Result<()> {
             };
         }
         #[cfg(feature = "sqlite")]
-        Command::Payments { filter } => {
-            let config = config::load_config()?;
-            let tax_rate = config.tax().tax_rate();
-            let criteria = build_criteria(filter)?;
-            let incomes = db::find_by_criteria(&Criteria::And(criteria))?;
-            let payments: Vec<_> = incomes
-                .into_iter()
-                .map(|i| Payment::tax_rate(i, tax_rate, false))
-                .collect();
-            let report = PaymentReport::from_payments(payments);
-            plaintext_report(&report, stdout())?;
-        }
+        Command::Payments { command } => match command {
+            PaymentCommands::Report { filter } => {
+                let config = config::load_config()?;
+                let tax_rate = config.tax().tax_rate();
+                let criteria = build_criteria(filter)?;
+                let incomes = db::find_by_criteria(&Criteria::And(criteria))?;
+                let payments: Vec<_> = incomes
+                    .into_iter()
+                    .map(|i| Payment::tax_rate(i, tax_rate, false))
+                    .collect();
+                let report = PaymentReport::from_payments(payments);
+                plaintext_report(&report, stdout())?;
+            }
+        },
     }
 
     Ok(())
