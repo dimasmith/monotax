@@ -77,6 +77,9 @@ pub enum Command {
         #[command(flatten)]
         filter: FilterArgs,
     },
+    /// Report on tax payments.
+    #[cfg(feature = "sqlite")]
+    Payments {},
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, ValueEnum, Default)]

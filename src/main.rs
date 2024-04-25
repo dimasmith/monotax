@@ -15,6 +15,9 @@ use monotax::db;
 #[cfg(feature = "sqlite")]
 use monotax::db::criteria::Criteria;
 use monotax::filter::IncomeFilter;
+use monotax::payment::report::plaintext::plaintext_report;
+use monotax::payment::report::PaymentReport;
+use monotax::payment::Payment;
 use monotax::report::generate_report;
 use monotax::{config, init, report, taxer, universalbank};
 
@@ -111,6 +114,18 @@ fn main() -> anyhow::Result<()> {
                 ReportFormat::Console => report::console::pretty_print(&report, writer)?,
                 ReportFormat::Csv => report::csv::render_csv(&report, writer)?,
             };
+        }
+        #[cfg(feature = "sqlite")]
+        Command::Payments {} => {
+            let config = config::load_config()?;
+            let tax_rate = config.tax().tax_rate();
+            let incomes = db::find_all()?;
+            let payments: Vec<_> = incomes
+                .into_iter()
+                .map(|i| Payment::tax_rate(i, tax_rate, false))
+                .collect();
+            let report = PaymentReport::from_payments(payments);
+            plaintext_report(&report, stdout())?;
         }
     }
 
