@@ -79,7 +79,10 @@ pub enum Command {
     },
     /// Report on tax payments.
     #[cfg(feature = "sqlite")]
-    Payments {},
+    Payments {
+        #[command(flatten)]
+        filter: FilterArgs,
+    },
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, ValueEnum, Default)]

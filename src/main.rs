@@ -116,10 +116,11 @@ fn main() -> anyhow::Result<()> {
             };
         }
         #[cfg(feature = "sqlite")]
-        Command::Payments {} => {
+        Command::Payments { filter } => {
             let config = config::load_config()?;
             let tax_rate = config.tax().tax_rate();
-            let incomes = db::find_all()?;
+            let criteria = build_criteria(filter)?;
+            let incomes = db::find_by_criteria(&Criteria::And(criteria))?;
             let payments: Vec<_> = incomes
                 .into_iter()
                 .map(|i| Payment::tax_rate(i, tax_rate, false))
