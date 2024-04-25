@@ -8,7 +8,7 @@ description = "A tool to generate and manage tax reports"
 
 [features]
 # TODO: disable sqlite feature by default before merging to mainline
-default = []
+default = ["sqlite"]
 sqlite = ["rusqlite"]
 
 [dependencies]
