@@ -1,22 +1,91 @@
 //! Initialize database schema.
 
+use std::collections::HashSet;
+
 use super::config::{connect, database_path};
+use chrono::Local;
 use log::info;
-use rusqlite::Connection;
+use rusqlite::{params, Connection};
 
 pub fn create_schema(conn: &mut Connection) -> anyhow::Result<()> {
     conn.execute(
-        "CREATE TABLE IF NOT EXISTS income (
-            date DATEtIME NOT NULL,
-            amount DECIMAL(10,2) NOT NULL,
-            description TEXT,
-            year INTEGER NOT NULL,
-            quarter INTEGER NOT NULL,
-            PRIMARY KEY (date, amount)
+        "CREATE TABLE IF NOT EXISTS migration (
+            date DATETIME NOT NULL,
+            name VARCHAR(100),            
+            PRIMARY KEY (date, name)
         )",
         [],
     )?;
+
+    let applied_ids = read_applied_ids(conn)?;
+
+    let migrations = [Migrations::CreateIncomeTable];
+
+    for migration in migrations.iter() {
+        let migration_id = migration.id();
+        if applied_ids.contains(&migration_id) {
+            info!(
+                "skipped migration {}. it was already applied",
+                &migration_id
+            );
+            continue;
+        }
+        migration.apply(conn)?;
+        conn.execute(
+            "insert into migration (date, name) values (?, ?)",
+            params![Local::now().naive_local(), &migration_id],
+        )?;
+        info!("applied migration {}", &migration_id);
+    }
+
     Ok(())
+}
+
+fn read_applied_ids(conn: &mut Connection) -> anyhow::Result<HashSet<String>> {
+    let mut find_migrations_stmt = conn.prepare("select name from migration order by date asc")?;
+    let applied_ids = find_migrations_stmt.query_map([], |row| {
+        let migration_id: String = row.get(0)?;
+        Ok(migration_id)
+    })?;
+    let ids = applied_ids.into_iter().map(|r| r.unwrap()).collect();
+    Ok(ids)
+}
+
+trait Migration {
+    fn id(&self) -> String;
+
+    fn apply(&self, conn: &mut Connection) -> anyhow::Result<()>;
+}
+
+enum Migrations {
+    CreateIncomeTable,
+}
+
+impl Migration for Migrations {
+    fn id(&self) -> String {
+        match self {
+            Migrations::CreateIncomeTable => "create_income_table".to_string(),
+        }
+    }
+
+    fn apply(&self, conn: &mut Connection) -> anyhow::Result<()> {
+        match self {
+            Migrations::CreateIncomeTable => {
+                conn.execute(
+                    "CREATE TABLE IF NOT EXISTS income (
+                        date DATETIME NOT NULL,
+                        amount DECIMAL(10,2) NOT NULL,
+                        description TEXT,
+                        year INTEGER NOT NULL,
+                        quarter INTEGER NOT NULL,
+                        PRIMARY KEY (date, amount)
+                    )",
+                    [],
+                )?;
+                Ok(())
+            }
+        }
+    }
 }
 
 pub fn initialize_db_file() -> anyhow::Result<()> {
