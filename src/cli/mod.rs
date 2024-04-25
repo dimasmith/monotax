@@ -3,10 +3,13 @@ use std::path::PathBuf;
 use clap::{Parser, Subcommand, ValueEnum};
 
 use self::filter::FilterArgs;
+#[cfg(feature = "sqlite")]
+use self::payment::PaymentCommands;
 
 #[cfg(feature = "sqlite")]
 pub mod criterion;
 pub mod filter;
+pub mod payment;
 pub mod predicate;
 
 #[derive(Debug, Parser)]
@@ -76,6 +79,12 @@ pub enum Command {
         output: Option<PathBuf>,
         #[command(flatten)]
         filter: FilterArgs,
+    },
+    /// Work with tax payments.
+    #[cfg(feature = "sqlite")]
+    Payments {
+        #[clap(subcommand)]
+        command: PaymentCommands,
     },
 }
 

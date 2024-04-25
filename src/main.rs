@@ -6,6 +6,8 @@ use anyhow::Context;
 use clap::Parser;
 #[cfg(feature = "sqlite")]
 use cli::criterion::build_criteria;
+#[cfg(feature = "sqlite")]
+use cli::payment::PaymentCommands;
 use cli::predicate::build_predicates;
 use cli::ReportFormat;
 use cli::{Cli, Command};
@@ -14,7 +16,13 @@ use env_logger::{Builder, Env};
 use monotax::db;
 #[cfg(feature = "sqlite")]
 use monotax::db::criteria::Criteria;
+#[cfg(feature = "sqlite")]
+use monotax::db::find_payments_by_criteria;
 use monotax::filter::IncomeFilter;
+#[cfg(feature = "sqlite")]
+use monotax::payment::report::plaintext::plaintext_report;
+#[cfg(feature = "sqlite")]
+use monotax::payment::report::PaymentReport;
 use monotax::report::QuarterlyReport;
 use monotax::{config, init, report, taxer, universalbank};
 
@@ -112,6 +120,15 @@ fn main() -> anyhow::Result<()> {
                 ReportFormat::Csv => report::csv::render_csv(&report, writer)?,
             };
         }
+        #[cfg(feature = "sqlite")]
+        Command::Payments { command } => match command {
+            PaymentCommands::Report { filter } => {
+                let criteria = build_criteria(filter)?;
+                let payments = find_payments_by_criteria(&Criteria::And(criteria))?;
+                let report = PaymentReport::from_payments(payments);
+                plaintext_report(&report, stdout())?;
+            }
+        },
     }
 
     Ok(())
