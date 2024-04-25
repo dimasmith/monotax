@@ -19,7 +19,7 @@ pub fn create_schema(conn: &mut Connection) -> anyhow::Result<()> {
 
     let applied_ids = read_applied_ids(conn)?;
 
-    let migrations = [Migrations::CreateIncomeTable];
+    let migrations = [Migrations::CreateIncomeTable, Migrations::AddTaxPaidColumn];
 
     for migration in migrations.iter() {
         let migration_id = migration.id();
@@ -59,12 +59,14 @@ trait Migration {
 
 enum Migrations {
     CreateIncomeTable,
+    AddTaxPaidColumn,
 }
 
 impl Migration for Migrations {
     fn id(&self) -> String {
         match self {
             Migrations::CreateIncomeTable => "create_income_table".to_string(),
+            Migrations::AddTaxPaidColumn => "add_tax_paid_column".to_string(),
         }
     }
 
@@ -82,9 +84,15 @@ impl Migration for Migrations {
                     )",
                     [],
                 )?;
-                Ok(())
+            }
+            Migrations::AddTaxPaidColumn => {
+                conn.execute(
+                    "alter table income add column tax_paid bool default false",
+                    [],
+                )?;
             }
         }
+        Ok(())
     }
 }
 

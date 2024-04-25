@@ -15,10 +15,10 @@ use env_logger::{Builder, Env};
 use monotax::db;
 #[cfg(feature = "sqlite")]
 use monotax::db::criteria::Criteria;
+use monotax::db::find_payments_by_criteria;
 use monotax::filter::IncomeFilter;
 use monotax::payment::report::plaintext::plaintext_report;
 use monotax::payment::report::PaymentReport;
-use monotax::payment::Payment;
 use monotax::report::generate_report;
 use monotax::{config, init, report, taxer, universalbank};
 
@@ -119,14 +119,8 @@ fn main() -> anyhow::Result<()> {
         #[cfg(feature = "sqlite")]
         Command::Payments { command } => match command {
             PaymentCommands::Report { filter } => {
-                let config = config::load_config()?;
-                let tax_rate = config.tax().tax_rate();
                 let criteria = build_criteria(filter)?;
-                let incomes = db::find_by_criteria(&Criteria::And(criteria))?;
-                let payments: Vec<_> = incomes
-                    .into_iter()
-                    .map(|i| Payment::tax_rate(i, tax_rate, false))
-                    .collect();
+                let payments = find_payments_by_criteria(&Criteria::And(criteria))?;
                 let report = PaymentReport::from_payments(payments);
                 plaintext_report(&report, stdout())?;
             }
