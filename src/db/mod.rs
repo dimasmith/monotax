@@ -45,3 +45,8 @@ pub fn find_payments_by_criteria(criteria: &Criteria) -> anyhow::Result<Vec<Paym
         .collect();
     Ok(payments)
 }
+
+pub fn mark_paid(payment_no: i64) -> anyhow::Result<()> {
+    let conn = connect()?;
+    repository::mark_paid(&conn, payment_no)
+}

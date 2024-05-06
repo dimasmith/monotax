@@ -9,4 +9,7 @@ pub enum PaymentCommands {
         #[command(flatten)]
         filter: FilterArgs,
     },
+    Pay {
+        payment_no: i64,
+    },
 }

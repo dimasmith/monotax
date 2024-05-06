@@ -128,6 +128,9 @@ fn main() -> anyhow::Result<()> {
                 let report = PaymentReport::from_payments(payments);
                 plaintext_report(&report, stdout())?;
             }
+            PaymentCommands::Pay { payment_no } => {
+                mark_paid(*payment_no)?;
+            }
         },
     }
 
