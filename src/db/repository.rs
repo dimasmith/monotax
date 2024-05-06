@@ -34,6 +34,18 @@ pub fn save_incomes(conn: &mut Connection, incomes: &[Income]) -> anyhow::Result
     Ok(updated)
 }
 
+pub fn mark_paid(conn: &Connection, payment_no: i64) -> anyhow::Result<()> {
+    let marked = conn.execute(
+        "UPDATE income SET tax_paid = :tax_paid WHERE payment_no = :payment_no",
+        named_params! {
+            ":tax_paid": true,
+            ":payment_no": payment_no
+        },
+    )?;
+    anyhow::ensure!(marked == 1, "payment {} does not exist", payment_no);
+    Ok(())
+}
+
 pub fn load_all_incomes(conn: &mut Connection) -> anyhow::Result<Vec<Income>> {
     find_incomes(conn, &Criteria::And(vec![]))
 }
