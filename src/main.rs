@@ -131,6 +131,9 @@ fn main() -> anyhow::Result<()> {
             PaymentCommands::Pay { payment_no } => {
                 mark_paid(*payment_no)?;
             }
+            PaymentCommands::Unpay { payment_no } => {
+                mark_unpaid(*payment_no)?;
+            }
         },
     }
 
