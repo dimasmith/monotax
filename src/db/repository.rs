@@ -1,5 +1,5 @@
 use chrono::{Datelike, NaiveDateTime};
-use rusqlite::{params, Connection, ToSql};
+use rusqlite::{named_params, Connection, Row, ToSql};
 
 use crate::{income::Income, time::Quarter};
 
@@ -12,14 +12,15 @@ pub fn save_incomes(conn: &mut Connection, incomes: &[Income]) -> anyhow::Result
     let tx = conn.transaction()?;
     for income in income_records {
         updated += tx.execute(
-            "INSERT OR IGNORE INTO income (date, amount, description, year, quarter, tax_paid) VALUES (?1, ?2, ?3, ?4, ?5, ?6)",
-            params![
-                income.date.to_string(),
-                income.amount,
-                income.description,
-                income.year,
-                income.quarter,
-                income.tax_paid,
+            "INSERT OR IGNORE INTO income (date, amount, description, year, quarter, tax_paid) 
+            VALUES (:date, :amount, :description, :year, :quarter, :tax_paid)",
+            named_params![
+                ":date": income.date.to_string(),
+                ":amount": income.amount,
+                ":description": income.description,
+                ":year": income.year,
+                ":quarter": income.quarter,
+                ":tax_paid": income.tax_paid,
             ],
         )?;
     }
@@ -29,51 +30,14 @@ pub fn save_incomes(conn: &mut Connection, incomes: &[Income]) -> anyhow::Result
 }
 
 pub fn load_all_incomes(conn: &mut Connection) -> anyhow::Result<Vec<Income>> {
-    let mut stmt = conn
-        .prepare("SELECT date, amount, description, year, quarter FROM income order by date asc")?;
-    let incomes_records = stmt.query_map([], |row| {
-        let date = row.get(0)?;
-        let amount: f64 = row.get(1)?;
-        let description: String = row.get(2)?;
-        let tax_paid = row.get(3)?;
-        Ok(IncomeRecord::new(date, amount, description, tax_paid))
-    })?;
-
-    let incomes: Vec<Income> = incomes_records
-        .map(|r| r.unwrap().into_income())
-        .collect::<Vec<_>>();
-
-    Ok(incomes)
+    find_incomes(conn, &Criteria::And(vec![]))
 }
 
 pub fn find_incomes(conn: &mut Connection, criteria: &Criteria) -> anyhow::Result<Vec<Income>> {
-    let where_clause = if criteria.where_clause().is_empty() {
-        String::default()
-    } else {
-        format!("WHERE {}", criteria.where_clause())
-    };
-    let query = format!(
-            "SELECT date, amount, description, tax_paid, year, quarter FROM income {} ORDER BY date ASC",
-            where_clause
-        );
-
-    let params = criteria.params();
-    let params: Vec<(&str, &dyn ToSql)> = params
-        .iter()
-        .map(|(name, value)| (*name, value as &dyn ToSql))
-        .collect();
-
-    let mut stmt = conn.prepare(&query)?;
-    let incomes_records = stmt.query_map(params.as_slice(), |row| {
-        let date = row.get(0)?;
-        let amount: f64 = row.get(1)?;
-        let description: String = row.get(2)?;
-        let tax_paid = row.get(3)?;
-        Ok(IncomeRecord::new(date, amount, description, tax_paid))
-    })?;
-
-    let incomes: Vec<Income> = incomes_records
-        .map(|r| r.unwrap().into_income())
+    let records = find_records_by(conn, criteria)?;
+    let incomes: Vec<Income> = records
+        .into_iter()
+        .map(|r| r.into_income())
         .collect::<Vec<_>>();
 
     Ok(incomes)
@@ -100,17 +64,19 @@ pub(super) fn find_records_by(
         .collect();
 
     let mut stmt = conn.prepare(&query)?;
-    let incomes_records = stmt.query_map(params.as_slice(), |row| {
-        let date = row.get(0)?;
-        let amount: f64 = row.get(1)?;
-        let description: String = row.get(2)?;
-        let tax_paid = row.get(3)?;
-        Ok(IncomeRecord::new(date, amount, description, tax_paid))
-    })?;
+    let incomes_records = stmt.query_map(params.as_slice(), |row| map_income_records(row))?;
 
     let incomes = incomes_records.map(|r| r.unwrap()).collect::<Vec<_>>();
 
     Ok(incomes)
+}
+
+fn map_income_records(row: &Row) -> Result<IncomeRecord, rusqlite::Error> {
+    let date = row.get("date")?;
+    let amount: f64 = row.get("amount")?;
+    let description: String = row.get("description")?;
+    let tax_paid = row.get("tax_paid")?;
+    Ok(IncomeRecord::new(date, amount, description, tax_paid))
 }
 
 #[derive(Debug, Clone)]
