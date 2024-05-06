@@ -10,13 +10,18 @@ pub fn save_incomes(conn: &mut Connection, incomes: &[Income]) -> anyhow::Result
 
     let mut updated = 0;
     let tx = conn.transaction()?;
-    for income in income_records {
+    let max_payment_no: i64 = tx
+        .query_row("SELECT MAX(payment_no) FROM income", [], |r| r.get(0))
+        .unwrap_or_default();
+    for (n, income) in income_records.enumerate() {
+        let payment_no = max_payment_no + 1 + n as i64;
         updated += tx.execute(
-            "INSERT OR IGNORE INTO income (date, amount, description, year, quarter, tax_paid) 
-            VALUES (:date, :amount, :description, :year, :quarter, :tax_paid)",
+            "INSERT OR IGNORE INTO income (date, amount, payment_no, description, year, quarter, tax_paid) 
+            VALUES (:date, :amount, :payment_no, :description, :year, :quarter, :tax_paid)",
             named_params![
                 ":date": income.date.to_string(),
                 ":amount": income.amount,
+                ":payment_no": payment_no,
                 ":description": income.description,
                 ":year": income.year,
                 ":quarter": income.quarter,
