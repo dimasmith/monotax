@@ -1,5 +1,6 @@
 //! Filters for incomes.
 
+use crate::income::criteria::{IncomeCriteria, IncomeCriterion};
 use crate::income::Income;
 
 pub mod date;
@@ -36,34 +37,24 @@ pub trait IncomePredicate {
     /// Determines whether the income passes the filter.
     /// Returns true if income fits.
     fn test(&self, income: &Income) -> bool;
-
-    /// Helper method to convert the predicate to a boxed trait object.
-    /// Useful for combining multiple predicates.
-    fn boxed(self) -> Box<dyn IncomePredicate>
-    where
-        Self: Sized + 'static,
-    {
-        Box::new(self)
-    }
 }
 
-pub struct IncomeFilter {
-    predicates: Vec<Box<dyn IncomePredicate>>,
-}
-
-impl IncomeFilter {
-    pub fn new(predicates: Vec<Box<dyn IncomePredicate>>) -> Self {
-        Self { predicates }
-    }
-}
-
-impl IncomePredicate for IncomeFilter {
+impl IncomePredicate for IncomeCriteria {
     fn test(&self, income: &Income) -> bool {
-        for predicate in &self.predicates {
-            if !predicate.test(income) {
+        for c in self.criteria() {
+            if !c.test(income) {
                 return false;
             }
         }
         true
+    }
+}
+
+impl IncomePredicate for IncomeCriterion {
+    fn test(&self, income: &Income) -> bool {
+        match self {
+            IncomeCriterion::Quarter(filter) => filter.filter_income(income),
+            IncomeCriterion::Year(filter) => filter.filter_income(income),
+        }
     }
 }

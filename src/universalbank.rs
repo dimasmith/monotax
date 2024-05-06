@@ -6,14 +6,14 @@ use csv::StringRecord;
 use encoding_rs::WINDOWS_1251;
 use encoding_rs_rw::DecodingReader;
 
-use crate::filter::{IncomeFilter, IncomePredicate};
+use crate::filter::IncomePredicate;
 use crate::income::Income;
 
 const DATE_COLUMN: usize = 4;
 const AMOUNT_COLUMN: usize = 14;
 const DESCRIPTION_COLUMN: usize = 15;
 
-pub fn read_incomes<R>(reader: R, filter: &IncomeFilter) -> anyhow::Result<Vec<Income>>
+pub fn read_incomes<R>(reader: R, filter: impl IncomePredicate) -> anyhow::Result<Vec<Income>>
 where
     R: Read,
 {

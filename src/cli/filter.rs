@@ -1,6 +1,6 @@
 use clap::Args;
 use monotax::{
-    filter::date::{QuarterFilter, YearFilter},
+    income::criteria::{IncomeCriteria, IncomeCriterion, QuarterFilter, YearFilter},
     time::Quarter,
 };
 
@@ -25,6 +25,17 @@ pub struct FilterArgs {
     #[clap(short, long)]
     #[arg(value_enum)]
     pub year: Option<i32>,
+}
+
+impl FilterArgs {
+    pub fn criteria(&self) -> IncomeCriteria {
+        let quarter_filter = build_quarter_filter(self);
+        let year_filter = build_year_filter(self);
+        IncomeCriteria::new(&[
+            IncomeCriterion::Quarter(quarter_filter),
+            IncomeCriterion::Year(year_filter),
+        ])
+    }
 }
 
 pub fn build_quarter_filter(cli: &FilterArgs) -> QuarterFilter {

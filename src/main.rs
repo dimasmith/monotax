@@ -5,20 +5,15 @@ use anyhow::Context;
 
 use clap::Parser;
 #[cfg(feature = "sqlite")]
-use cli::criterion::build_criteria;
-#[cfg(feature = "sqlite")]
 use cli::payment::PaymentCommands;
-use cli::predicate::build_predicates;
 use cli::ReportFormat;
 use cli::{Cli, Command};
 use env_logger::{Builder, Env};
 #[cfg(feature = "sqlite")]
 use monotax::db;
-#[cfg(feature = "sqlite")]
-use monotax::db::criteria::Criteria;
-#[cfg(feature = "sqlite")]
 use monotax::db::find_payments_by_criteria;
-use monotax::filter::IncomeFilter;
+#[cfg(feature = "sqlite")]
+use monotax::db::{mark_paid, mark_unpaid};
 #[cfg(feature = "sqlite")]
 use monotax::payment::report::plaintext::plaintext_report;
 #[cfg(feature = "sqlite")]
@@ -39,11 +34,10 @@ fn main() -> anyhow::Result<()> {
         Command::Init { force } => init::init(*force)?,
         #[cfg(feature = "sqlite")]
         Command::Import { statement, filter } => {
-            let predicates = build_predicates(filter)?;
             let stmt_path = statement.as_path();
             let stmt_file = File::open(stmt_path)
                 .with_context(|| format!("open statement file {}", stmt_path.display()))?;
-            let incomes = universalbank::read_incomes(stmt_file, &IncomeFilter::new(predicates))?;
+            let incomes = universalbank::read_incomes(stmt_file, filter.criteria())?;
             let imported = db::save_all(&incomes)?;
             log::info!("Imported {} incomes", imported);
         }
@@ -69,8 +63,7 @@ fn main() -> anyhow::Result<()> {
         #[cfg(feature = "sqlite")]
         Command::Taxer { output, filter } => {
             let config = config::load_config()?;
-            let criteria = build_criteria(filter)?;
-            let incomes = db::find_by_criteria(&Criteria::And(criteria))?;
+            let incomes = db::find_by_criteria(filter.criteria())?;
             let writer: Box<dyn Write> = match output {
                 Some(path) => Box::new(BufWriter::new(File::create(path)?)),
                 None => Box::new(BufWriter::new(stdout())),
@@ -108,8 +101,7 @@ fn main() -> anyhow::Result<()> {
             filter,
         } => {
             let config = config::load_config()?;
-            let criteria = build_criteria(filter)?;
-            let incomes = db::find_by_criteria(&Criteria::And(criteria))?;
+            let incomes = db::find_by_criteria(filter.criteria())?;
             let report = QuarterlyReport::build_report(incomes, config.tax());
             let writer: Box<dyn Write> = match output {
                 Some(path) => Box::new(BufWriter::new(File::create(path)?)),
@@ -123,8 +115,7 @@ fn main() -> anyhow::Result<()> {
         #[cfg(feature = "sqlite")]
         Command::Payments { command } => match command {
             PaymentCommands::Report { filter } => {
-                let criteria = build_criteria(filter)?;
-                let payments = find_payments_by_criteria(&Criteria::And(criteria))?;
+                let payments = find_payments_by_criteria(filter.criteria())?;
                 let report = PaymentReport::from_payments(payments);
                 plaintext_report(&report, stdout())?;
             }

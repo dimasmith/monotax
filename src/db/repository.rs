@@ -1,9 +1,12 @@
 use chrono::{Datelike, NaiveDateTime};
 use rusqlite::{named_params, Connection, Row, ToSql};
 
-use crate::{income::Income, time::Quarter};
+use crate::{
+    income::{criteria::IncomeCriteria, Income},
+    time::Quarter,
+};
 
-use super::criteria::Criteria;
+use super::criteria::SqlCriteria;
 
 pub fn save_incomes(conn: &mut Connection, incomes: &[Income]) -> anyhow::Result<usize> {
     let income_records = incomes.iter().map(IncomeRecord::from);
@@ -47,10 +50,13 @@ pub fn save_tax_paid(conn: &Connection, payment_no: i64, tax_paid: bool) -> anyh
 }
 
 pub fn load_all_incomes(conn: &mut Connection) -> anyhow::Result<Vec<Income>> {
-    find_incomes(conn, &Criteria::And(vec![]))
+    find_incomes(conn, IncomeCriteria::new(&[]))
 }
 
-pub fn find_incomes(conn: &mut Connection, criteria: &Criteria) -> anyhow::Result<Vec<Income>> {
+pub fn find_incomes(
+    conn: &mut Connection,
+    criteria: impl SqlCriteria,
+) -> anyhow::Result<Vec<Income>> {
     let records = find_records_by(conn, criteria)?;
     let incomes: Vec<Income> = records
         .into_iter()
@@ -62,7 +68,7 @@ pub fn find_incomes(conn: &mut Connection, criteria: &Criteria) -> anyhow::Resul
 
 pub(super) fn find_records_by(
     conn: &mut Connection,
-    criteria: &Criteria,
+    criteria: impl SqlCriteria,
 ) -> anyhow::Result<Vec<IncomeRecord>> {
     let where_clause = if criteria.where_clause().is_empty() {
         String::default()

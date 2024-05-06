@@ -6,11 +6,8 @@ use self::filter::FilterArgs;
 #[cfg(feature = "sqlite")]
 use self::payment::PaymentCommands;
 
-#[cfg(feature = "sqlite")]
-pub mod criterion;
 pub mod filter;
 pub mod payment;
-pub mod predicate;
 
 #[derive(Debug, Parser)]
 #[command(version, about, long_about)]

@@ -5,7 +5,8 @@
 use crate::config::load_config;
 use crate::{income::Income, payment::Payment};
 
-use self::{config::connect, criteria::Criteria};
+use self::config::connect;
+use self::criteria::SqlCriteria;
 
 mod config;
 pub mod criteria;
@@ -24,12 +25,12 @@ pub fn find_all() -> anyhow::Result<Vec<Income>> {
     repository::load_all_incomes(&mut conn)
 }
 
-pub fn find_by_criteria(criteria: &Criteria) -> anyhow::Result<Vec<Income>> {
+pub fn find_by_criteria(criteria: impl SqlCriteria) -> anyhow::Result<Vec<Income>> {
     let mut conn = connect()?;
     repository::find_incomes(&mut conn, criteria)
 }
 
-pub fn find_payments_by_criteria(criteria: &Criteria) -> anyhow::Result<Vec<Payment>> {
+pub fn find_payments_by_criteria(criteria: impl SqlCriteria) -> anyhow::Result<Vec<Payment>> {
     let config = load_config()?;
     let tax_rate = config.tax().tax_rate();
     let mut conn = connect()?;

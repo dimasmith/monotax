@@ -3,13 +3,29 @@
 use chrono::Datelike;
 
 use crate::{
-    filter::date::{QuarterFilter, YearFilter},
+    income::criteria::{IncomeCriterion, QuarterFilter, YearFilter},
     time::Quarter,
 };
 
-use super::criteria::Criterion;
+use super::criteria::SqlCriterion;
 
-impl Criterion for YearFilter {
+impl SqlCriterion for IncomeCriterion {
+    fn where_clause(&self) -> Option<String> {
+        match self {
+            IncomeCriterion::Quarter(f) => f.where_clause(),
+            IncomeCriterion::Year(f) => f.where_clause(),
+        }
+    }
+
+    fn params(&self) -> Option<(&str, rusqlite::types::Value)> {
+        match self {
+            IncomeCriterion::Quarter(f) => f.params(),
+            IncomeCriterion::Year(f) => f.params(),
+        }
+    }
+}
+
+impl SqlCriterion for YearFilter {
     fn where_clause(&self) -> Option<String> {
         let col = "year";
         match self {
@@ -31,7 +47,7 @@ impl Criterion for YearFilter {
     }
 }
 
-impl Criterion for QuarterFilter {
+impl SqlCriterion for QuarterFilter {
     fn where_clause(&self) -> Option<String> {
         match self {
             QuarterFilter::Any => None,

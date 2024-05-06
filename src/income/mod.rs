@@ -1,5 +1,7 @@
 use chrono::{NaiveDate, NaiveDateTime};
 
+pub mod criteria;
+
 #[derive(Debug, Clone)]
 pub struct Income {
     income_no: i64,

@@ -4,8 +4,10 @@ use std::fs::File;
 
 use chrono::NaiveDateTime;
 use monotax::{
-    filter::{date::QuarterFilter, IncomeFilter, IncomePredicate},
-    income::Income,
+    income::{
+        criteria::{IncomeCriteria, IncomeCriterion, QuarterFilter},
+        Income,
+    },
     time::Quarter,
     universalbank,
 };
@@ -18,8 +20,8 @@ fn income(date: &str, amount: f64) -> Income {
 #[test]
 fn import_all_from_csv() {
     let balance_file = File::open("tests/test_files/balance.csv").unwrap();
-    let allow_all_filter = IncomeFilter::new(vec![]);
-    let incomes = universalbank::read_incomes(balance_file, &allow_all_filter).unwrap();
+    let allow_all_filter = IncomeCriteria::new(&[]);
+    let incomes = universalbank::read_incomes(balance_file, allow_all_filter).unwrap();
 
     assert_eq!(4, incomes.len());
     assert_eq!(
@@ -36,8 +38,9 @@ fn import_all_from_csv() {
 #[test]
 fn import_one_quarter_from_csv() {
     let balance_file = File::open("tests/test_files/balance.csv").unwrap();
-    let allow_all_filter = IncomeFilter::new(vec![QuarterFilter::Only(Quarter::Q1).boxed()]);
-    let incomes = universalbank::read_incomes(balance_file, &allow_all_filter).unwrap();
+    let quarter_filter =
+        IncomeCriteria::new(&[IncomeCriterion::Quarter(QuarterFilter::Only(Quarter::Q1))]);
+    let incomes = universalbank::read_incomes(balance_file, quarter_filter).unwrap();
 
     assert_eq!(3, incomes.len());
     assert_eq!(

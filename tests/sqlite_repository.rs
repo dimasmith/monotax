@@ -4,11 +4,12 @@ mod sqlite_repository {
     use monotax::{
         db::{
             self,
-            criteria::Criteria,
             repository::{find_incomes, load_all_incomes, save_incomes},
         },
-        filter::date::{QuarterFilter, YearFilter},
-        income::Income,
+        income::{
+            criteria::{IncomeCriteria, IncomeCriterion, QuarterFilter, YearFilter},
+            Income,
+        },
         time::Quarter,
     };
     use rusqlite::Connection;
@@ -61,7 +62,7 @@ mod sqlite_repository {
     }
 
     #[test]
-    fn filter_incomes_on_quaters() {
+    fn filter_incomes_on_quarters() {
         let mut conn = Connection::open_in_memory().unwrap();
         db::init::create_schema(&mut conn).unwrap();
 
@@ -79,18 +80,27 @@ mod sqlite_repository {
         let _ = save_incomes(&mut conn, &incomes).unwrap();
 
         let q3_only = QuarterFilter::Only(Quarter::Q3);
-        let filtered_incomes =
-            find_incomes(&mut conn, &Criteria::And(vec![Box::new(q3_only)])).unwrap();
+        let filtered_incomes = find_incomes(
+            &mut conn,
+            IncomeCriteria::new(&[IncomeCriterion::Quarter(q3_only)]),
+        )
+        .unwrap();
         assert_eq!(filtered_incomes, vec![q3_2024.clone()]);
 
         let q2_ytd = QuarterFilter::Ytd(Quarter::Q2);
-        let filtered_incomes =
-            find_incomes(&mut conn, &Criteria::And(vec![Box::new(q2_ytd)])).unwrap();
+        let filtered_incomes = find_incomes(
+            &mut conn,
+            IncomeCriteria::new(&[IncomeCriterion::Quarter(q2_ytd)]),
+        )
+        .unwrap();
         assert_eq!(filtered_incomes, vec![q1_2024.clone(), q2_2024.clone()]);
 
         let q_any = QuarterFilter::Any;
-        let filtered_incomes =
-            find_incomes(&mut conn, &Criteria::And(vec![Box::new(q_any)])).unwrap();
+        let filtered_incomes = find_incomes(
+            &mut conn,
+            IncomeCriteria::new(&[IncomeCriterion::Quarter(q_any)]),
+        )
+        .unwrap();
         assert_eq!(
             filtered_incomes,
             vec![
@@ -115,13 +125,19 @@ mod sqlite_repository {
         let _ = save_incomes(&mut conn, &incomes).unwrap();
 
         let y2024_only = YearFilter::One(2024);
-        let filtered_incomes =
-            find_incomes(&mut conn, &Criteria::And(vec![Box::new(y2024_only)])).unwrap();
+        let filtered_incomes = find_incomes(
+            &mut conn,
+            IncomeCriteria::new(&[IncomeCriterion::from(y2024_only)]),
+        )
+        .unwrap();
         assert_eq!(filtered_incomes, vec![y2024.clone()]);
 
         let y_any = YearFilter::Any;
-        let filtered_incomes =
-            find_incomes(&mut conn, &Criteria::And(vec![Box::new(y_any)])).unwrap();
+        let filtered_incomes = find_incomes(
+            &mut conn,
+            IncomeCriteria::new(&[IncomeCriterion::from(y_any)]),
+        )
+        .unwrap();
         assert_eq!(
             filtered_incomes,
             vec![y2023.clone(), y2024.clone(), y2025.clone()]
@@ -129,7 +145,7 @@ mod sqlite_repository {
     }
 
     #[test]
-    fn filter_incomes_on_quaters_and_years() {
+    fn filter_incomes_on_quarters_and_years() {
         let mut conn = Connection::open_in_memory().unwrap();
         db::init::create_schema(&mut conn).unwrap();
 
@@ -158,7 +174,10 @@ mod sqlite_repository {
         let y2024_only = YearFilter::One(2024);
         let filtered_incomes = find_incomes(
             &mut conn,
-            &Criteria::And(vec![Box::new(q3_2024_only), Box::new(y2024_only)]),
+            IncomeCriteria::new(&[
+                IncomeCriterion::from(q3_2024_only),
+                IncomeCriterion::from(y2024_only),
+            ]),
         )
         .unwrap();
         assert_eq!(filtered_incomes, vec![q3_2024.clone()]);
@@ -168,7 +187,10 @@ mod sqlite_repository {
         let y2023_only = YearFilter::One(2023);
         let filtered_incomes = find_incomes(
             &mut conn,
-            &Criteria::And(vec![Box::new(q3_ytd_2023), Box::new(y2023_only)]),
+            IncomeCriteria::new(&[
+                IncomeCriterion::from(q3_ytd_2023),
+                IncomeCriterion::from(y2023_only),
+            ]),
         );
         assert_eq!(
             filtered_incomes.unwrap(),
@@ -180,7 +202,7 @@ mod sqlite_repository {
         let y_any = YearFilter::Any;
         let filtered_incomes = find_incomes(
             &mut conn,
-            &Criteria::And(vec![Box::new(q4_only), Box::new(y_any)]),
+            IncomeCriteria::new(&[IncomeCriterion::from(q4_only), IncomeCriterion::from(y_any)]),
         );
         assert_eq!(
             filtered_incomes.unwrap(),
@@ -192,7 +214,10 @@ mod sqlite_repository {
         let q_ay = QuarterFilter::Any;
         let filtered_incomes = find_incomes(
             &mut conn,
-            &Criteria::And(vec![Box::new(q_ay), Box::new(y2024_only)]),
+            IncomeCriteria::new(&[
+                IncomeCriterion::from(q_ay),
+                IncomeCriterion::from(y2024_only),
+            ]),
         );
         assert_eq!(
             filtered_incomes.unwrap(),
