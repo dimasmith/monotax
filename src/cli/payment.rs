@@ -1,3 +1,5 @@
+use std::path::PathBuf;
+
 use clap::Subcommand;
 
 use super::filter::FilterArgs;
@@ -6,6 +8,9 @@ use super::filter::FilterArgs;
 pub enum PaymentCommands {
     /// Report on tax payments.
     Report {
+        /// Output file for payment report.
+        #[clap(short, long)]
+        output: Option<PathBuf>,
         #[command(flatten)]
         filter: FilterArgs,
     },

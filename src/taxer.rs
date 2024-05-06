@@ -10,11 +10,16 @@ pub struct TaxerIncome<'a> {
     comment: &'a str,
 }
 
-pub fn export_csv<W>(income: &[Income], config: &TaxerImportConfig, writer: W) -> anyhow::Result<()>
+pub fn export_csv<W>(
+    income: impl IntoIterator<Item = Income>,
+    config: &TaxerImportConfig,
+    writer: W,
+) -> anyhow::Result<()>
 where
     W: Write,
 {
-    let taxer_records: Vec<TaxerIncome> = income
+    let incomes = income.into_iter().collect::<Vec<_>>();
+    let taxer_records: Vec<TaxerIncome> = incomes
         .iter()
         .map(|income| {
             let tax_number = config.id();

@@ -1,14 +1,17 @@
 use std::fs::File;
 use std::io::{prelude::*, stdout, BufWriter};
+use std::path::PathBuf;
 
 use anyhow::Context;
 
 use clap::Parser;
+use cli::filter::FilterArgs;
 use cli::payment::PaymentCommands;
 use cli::ReportFormat;
 use cli::{Cli, Command};
 use env_logger::{Builder, Env};
 use monotax::db::{self, find_payments_by_criteria, mark_paid, mark_unpaid};
+use monotax::income::Income;
 use monotax::payment::report::plaintext::plaintext_report;
 use monotax::payment::report::PaymentReport;
 use monotax::report::QuarterlyReport;
@@ -26,11 +29,8 @@ fn main() -> anyhow::Result<()> {
     match &cli.command {
         Command::Init { force } => init::init(*force)?,
         Command::Import { statement, filter } => {
-            let stmt_path = statement.as_path();
-            let stmt_file = File::open(stmt_path)
-                .with_context(|| format!("open statement file {}", stmt_path.display()))?;
-            let incomes = universalbank::read_incomes(stmt_file, filter.criteria())?;
-            let imported = db::save_all(&incomes)?;
+            let incomes = incomes(&Some(statement.clone()), filter)?;
+            let imported = db::save_all(&incomes.into_iter().collect::<Vec<_>>())?;
             log::info!("Imported {} incomes", imported);
         }
 
@@ -40,19 +40,9 @@ fn main() -> anyhow::Result<()> {
             filter,
         } => {
             let config = config::load_config()?;
-            let incomes = match input {
-                Some(stmt) => {
-                    let file = File::open(stmt).context("opening input file")?;
-                    universalbank::read_incomes(file, filter.criteria())?
-                }
-                None => db::find_by_criteria(filter.criteria())?,
-            };
-
-            let writer: Box<dyn Write> = match output {
-                Some(path) => Box::new(BufWriter::new(File::create(path)?)),
-                None => Box::new(BufWriter::new(stdout())),
-            };
-            taxer::export_csv(&incomes, config.taxer(), writer)?;
+            let incomes = incomes(input, filter)?;
+            let writer = writer(output)?;
+            taxer::export_csv(incomes, config.taxer(), writer)?;
         }
         Command::Report {
             input,
@@ -61,28 +51,20 @@ fn main() -> anyhow::Result<()> {
             filter,
         } => {
             let config = config::load_config()?;
-            let incomes = match input {
-                Some(stmt) => {
-                    let file = File::open(stmt).context("opening input file")?;
-                    universalbank::read_incomes(file, filter.criteria())?
-                }
-                None => db::find_by_criteria(filter.criteria())?,
-            };
+            let incomes = incomes(input, filter)?;
             let report = QuarterlyReport::build_report(incomes, config.tax());
-            let writer: Box<dyn Write> = match output {
-                Some(path) => Box::new(BufWriter::new(File::create(path)?)),
-                None => Box::new(BufWriter::new(stdout())),
-            };
+            let writer = writer(output)?;
             match format {
                 ReportFormat::Console => report::console::pretty_print(&report, writer)?,
                 ReportFormat::Csv => report::csv::render_csv(&report, writer)?,
             };
         }
         Command::Payments { command } => match command {
-            PaymentCommands::Report { filter } => {
+            PaymentCommands::Report { output, filter } => {
                 let payments = find_payments_by_criteria(filter.criteria())?;
                 let report = PaymentReport::from_payments(payments);
-                plaintext_report(&report, stdout())?;
+                let writer = writer(output)?;
+                plaintext_report(&report, writer)?;
             }
             PaymentCommands::Pay { payment_no } => {
                 mark_paid(*payment_no)?;
@@ -94,4 +76,26 @@ fn main() -> anyhow::Result<()> {
     }
 
     Ok(())
+}
+
+fn writer(output: &Option<PathBuf>) -> anyhow::Result<Box<dyn Write>> {
+    let writer: Box<dyn Write> = match output {
+        Some(path) => Box::new(BufWriter::new(File::create(path)?)),
+        None => Box::new(BufWriter::new(stdout())),
+    };
+    Ok(writer)
+}
+
+fn incomes(
+    input: &Option<PathBuf>,
+    filter: &FilterArgs,
+) -> anyhow::Result<impl IntoIterator<Item = Income>> {
+    let incomes = match input {
+        Some(stmt) => {
+            let file = File::open(stmt).context("opening input file")?;
+            universalbank::read_incomes(file, filter.criteria())?
+        }
+        None => db::find_by_criteria(filter.criteria())?,
+    };
+    Ok(incomes)
 }
