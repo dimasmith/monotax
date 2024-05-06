@@ -64,7 +64,7 @@ pub(super) fn find_records_by(
         .collect();
 
     let mut stmt = conn.prepare(&query)?;
-    let incomes_records = stmt.query_map(params.as_slice(), |row| map_income_records(row))?;
+    let incomes_records = stmt.query_map(params.as_slice(), map_income_records)?;
 
     let incomes = incomes_records.map(|r| r.unwrap()).collect::<Vec<_>>();
 
