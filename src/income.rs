@@ -2,6 +2,7 @@ use chrono::{NaiveDate, NaiveDateTime};
 
 #[derive(Debug, Clone)]
 pub struct Income {
+    income_no: i64,
     date: NaiveDateTime,
     amount: f64,
     comment: Option<String>,
@@ -10,6 +11,7 @@ pub struct Income {
 impl Income {
     pub fn new(date: NaiveDateTime, amount: f64) -> Self {
         Self {
+            income_no: 0,
             date,
             amount,
             comment: None,
@@ -18,6 +20,7 @@ impl Income {
 
     pub fn from_date(date: NaiveDate, amount: f64) -> Self {
         Self {
+            income_no: 0,
             date: date.and_hms_opt(0, 0, 0).unwrap(),
             amount,
             comment: None,
@@ -26,9 +29,19 @@ impl Income {
 
     pub fn with_comment(self, comment: String) -> Self {
         Income {
+            income_no: 0,
             date: self.date,
             amount: self.amount,
             comment: Some(comment),
+        }
+    }
+
+    pub fn with_no(self, income_no: i64) -> Self {
+        Income {
+            income_no,
+            date: self.date,
+            amount: self.amount,
+            comment: self.comment,
         }
     }
 
@@ -46,6 +59,10 @@ impl Income {
 
     pub fn comment(&self) -> Option<&str> {
         self.comment.as_deref()
+    }
+
+    pub fn income_no(&self) -> i64 {
+        self.income_no
     }
 }
 

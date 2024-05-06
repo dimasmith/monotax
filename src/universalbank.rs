@@ -30,6 +30,7 @@ where
             incomes.push(income);
         }
     }
+    incomes.sort();
     Ok(incomes)
 }
 
