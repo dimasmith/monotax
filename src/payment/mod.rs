@@ -43,6 +43,10 @@ impl Payment {
     fn paid(&self) -> bool {
         self.paid
     }
+
+    fn payment_no(&self) -> i64 {
+        self.income.income_no()
+    }
 }
 
 impl Ord for Payment {

@@ -58,7 +58,7 @@ pub(super) fn find_records_by(
         format!("WHERE {}", criteria.where_clause())
     };
     let query =format!(
-            "SELECT date, amount, description, tax_paid, year, quarter FROM income {} ORDER BY date ASC",
+            "SELECT date, amount, payment_no, description, tax_paid, year, quarter FROM income {} ORDER BY date ASC",
             where_clause
         );
 
@@ -79,15 +79,23 @@ pub(super) fn find_records_by(
 fn map_income_records(row: &Row) -> Result<IncomeRecord, rusqlite::Error> {
     let date = row.get("date")?;
     let amount: f64 = row.get("amount")?;
+    let payment_no = row.get("payment_no")?;
     let description: String = row.get("description")?;
     let tax_paid = row.get("tax_paid")?;
-    Ok(IncomeRecord::new(date, amount, description, tax_paid))
+    Ok(IncomeRecord::new(
+        date,
+        amount,
+        description,
+        tax_paid,
+        payment_no,
+    ))
 }
 
 #[derive(Debug, Clone)]
 pub(super) struct IncomeRecord {
     date: NaiveDateTime,
     amount: f64,
+    payment_no: i64,
     description: String,
     year: i32,
     quarter: u32,
@@ -95,12 +103,19 @@ pub(super) struct IncomeRecord {
 }
 
 impl IncomeRecord {
-    fn new(date: NaiveDateTime, amount: f64, description: String, tax_paid: bool) -> Self {
+    fn new(
+        date: NaiveDateTime,
+        amount: f64,
+        description: String,
+        tax_paid: bool,
+        payment_no: i64,
+    ) -> Self {
         let year = date.year();
         let quarter = Quarter::from(&date).index() as u32;
         Self {
             date,
             amount,
+            payment_no,
             description,
             year,
             quarter,
@@ -113,11 +128,11 @@ impl IncomeRecord {
     }
 
     pub(super) fn income(&self) -> Income {
-        Income::new(self.date, self.amount)
+        Income::new(self.date, self.amount).with_no(self.payment_no)
     }
 
     fn into_income(self) -> Income {
-        Income::new(self.date, self.amount)
+        Income::new(self.date, self.amount).with_no(self.payment_no)
     }
 }
 
@@ -128,6 +143,7 @@ impl From<&Income> for IncomeRecord {
             income.amount(),
             income.comment().unwrap_or_default().to_string(),
             false,
+            income.income_no(),
         )
     }
 }
@@ -145,7 +161,7 @@ mod tests {
     fn income_record_from_income() {
         let income = income("2024-04-13 14:00:00", 225.0);
         let record = IncomeRecord::from(&income);
-        assert_eq!(record.amount, income.amount(), "amouts are note equal");
+        assert_eq!(record.amount, income.amount(), "amounts are note equal");
         assert_eq!(record.description, "", "unexpected description");
         assert_eq!(record.year, 2024, "incorrect year");
         assert_eq!(record.quarter, 2, "incorrect quarter");
