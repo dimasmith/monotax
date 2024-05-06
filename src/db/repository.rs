@@ -34,11 +34,11 @@ pub fn save_incomes(conn: &mut Connection, incomes: &[Income]) -> anyhow::Result
     Ok(updated)
 }
 
-pub fn mark_paid(conn: &Connection, payment_no: i64) -> anyhow::Result<()> {
+pub fn save_tax_paid(conn: &Connection, payment_no: i64, tax_paid: bool) -> anyhow::Result<()> {
     let marked = conn.execute(
         "UPDATE income SET tax_paid = :tax_paid WHERE payment_no = :payment_no",
         named_params! {
-            ":tax_paid": true,
+            ":tax_paid": tax_paid,
             ":payment_no": payment_no
         },
     )?;
