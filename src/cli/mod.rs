@@ -2,7 +2,9 @@ use std::path::PathBuf;
 
 use clap::{Parser, Subcommand, ValueEnum};
 
-use self::{filter::FilterArgs, payment::PaymentCommands};
+use self::filter::FilterArgs;
+#[cfg(feature = "sqlite")]
+use self::payment::PaymentCommands;
 
 #[cfg(feature = "sqlite")]
 pub mod criterion;

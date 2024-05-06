@@ -3,12 +3,13 @@ name = "monotax"
 version = "0.2.0"
 edition = "2021"
 description = "A tool to generate and manage tax reports"
+license-file = "LICENSE"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [features]
 # TODO: disable sqlite feature by default before merging to mainline
-default = ["sqlite"]
+default = []
 sqlite = ["rusqlite"]
 
 [dependencies]

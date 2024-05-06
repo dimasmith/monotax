@@ -6,6 +6,7 @@ use anyhow::Context;
 use clap::Parser;
 #[cfg(feature = "sqlite")]
 use cli::criterion::build_criteria;
+#[cfg(feature = "sqlite")]
 use cli::payment::PaymentCommands;
 use cli::predicate::build_predicates;
 use cli::ReportFormat;
@@ -15,11 +16,16 @@ use env_logger::{Builder, Env};
 use monotax::db;
 #[cfg(feature = "sqlite")]
 use monotax::db::criteria::Criteria;
+#[cfg(feature = "sqlite")]
+use monotax::db::find_payments_by_criteria;
+#[cfg(feature = "sqlite")]
 use monotax::db::{find_payments_by_criteria, mark_paid, mark_unpaid};
 use monotax::filter::IncomeFilter;
+#[cfg(feature = "sqlite")]
 use monotax::payment::report::plaintext::plaintext_report;
+#[cfg(feature = "sqlite")]
 use monotax::payment::report::PaymentReport;
-use monotax::report::generate_report;
+use monotax::report::QuarterlyReport;
 use monotax::{config, init, report, taxer, universalbank};
 
 mod cli;
@@ -87,7 +93,7 @@ fn main() -> anyhow::Result<()> {
                 .with_context(|| format!("open statement file {}", stmt_path.display()))?;
 
             let incomes = universalbank::read_incomes(stmt_file, &IncomeFilter::new(predicates))?;
-            let report = generate_report(incomes.into_iter(), config.tax());
+            let report = QuarterlyReport::build_report(incomes, config.tax());
             let writer: Box<dyn Write> = match output {
                 Some(path) => Box::new(BufWriter::new(File::create(path)?)),
                 None => Box::new(BufWriter::new(stdout())),
@@ -106,7 +112,7 @@ fn main() -> anyhow::Result<()> {
             let config = config::load_config()?;
             let criteria = build_criteria(filter)?;
             let incomes = db::find_by_criteria(&Criteria::And(criteria))?;
-            let report = generate_report(incomes.into_iter(), config.tax());
+            let report = QuarterlyReport::build_report(incomes, config.tax());
             let writer: Box<dyn Write> = match output {
                 Some(path) => Box::new(BufWriter::new(File::create(path)?)),
                 None => Box::new(BufWriter::new(stdout())),
