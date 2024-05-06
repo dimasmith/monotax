@@ -15,7 +15,7 @@ use env_logger::{Builder, Env};
 use monotax::db;
 #[cfg(feature = "sqlite")]
 use monotax::db::criteria::Criteria;
-use monotax::db::{find_payments_by_criteria, mark_paid};
+use monotax::db::{find_payments_by_criteria, mark_paid, mark_unpaid};
 use monotax::filter::IncomeFilter;
 use monotax::payment::report::plaintext::plaintext_report;
 use monotax::payment::report::PaymentReport;
@@ -126,6 +126,9 @@ fn main() -> anyhow::Result<()> {
             }
             PaymentCommands::Pay { payment_no } => {
                 mark_paid(*payment_no)?;
+            }
+            PaymentCommands::Unpay { payment_no } => {
+                mark_unpaid(*payment_no)?;
             }
         },
     }
