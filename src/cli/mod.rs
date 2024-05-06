@@ -3,7 +3,6 @@ use std::path::PathBuf;
 use clap::{Parser, Subcommand, ValueEnum};
 
 use self::filter::FilterArgs;
-#[cfg(feature = "sqlite")]
 use self::payment::PaymentCommands;
 
 pub mod filter;
@@ -25,7 +24,6 @@ pub enum Command {
         force: bool,
     },
     /// Import incomes into the database
-    #[cfg(feature = "sqlite")]
     Import {
         /// Path to the statement csv file
         statement: PathBuf,
@@ -33,17 +31,6 @@ pub enum Command {
         filter: FilterArgs,
     },
     /// Export statement csv to taxer csv
-    #[cfg(not(feature = "sqlite"))]
-    Taxer {
-        /// Path to the statement csv file
-        statement: PathBuf,
-        #[clap(short, long)]
-        output: Option<PathBuf>,
-        #[command(flatten)]
-        filter: FilterArgs,
-    },
-    /// Export statement csv to taxer csv
-    #[cfg(feature = "sqlite")]
     Taxer {
         /// Output file for taxer csv
         #[clap(short, long)]
@@ -52,21 +39,6 @@ pub enum Command {
         filter: FilterArgs,
     },
     /// Generates quarterly tax report of incomes.
-    #[cfg(not(feature = "sqlite"))]
-    Report {
-        /// Path to the statement csv file
-        statement: PathBuf,
-        #[clap(short, long)]
-        #[arg(value_enum)]
-        #[arg(value_enum, default_value_t)]
-        format: ReportFormat,
-        #[clap(short, long)]
-        output: Option<PathBuf>,
-        #[command(flatten)]
-        filter: FilterArgs,
-    },
-    /// Generates quarterly tax report of incomes.
-    #[cfg(feature = "sqlite")]
     Report {
         #[clap(short, long)]
         #[arg(value_enum)]
@@ -78,7 +50,6 @@ pub enum Command {
         filter: FilterArgs,
     },
     /// Work with tax payments.
-    #[cfg(feature = "sqlite")]
     Payments {
         #[clap(subcommand)]
         command: PaymentCommands,

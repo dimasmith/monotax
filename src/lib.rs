@@ -1,5 +1,4 @@
 pub mod config;
-#[cfg(feature = "sqlite")]
 pub mod db;
 pub mod filter;
 pub mod income;

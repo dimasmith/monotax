@@ -7,11 +7,6 @@ license-file = "LICENSE"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
-[features]
-# TODO: disable sqlite feature by default before merging to mainline
-default = ["sqlite"]
-sqlite = ["rusqlite"]
-
 [dependencies]
 anyhow = "1.0.81"
 chrono = "0.4.37"
@@ -28,4 +23,3 @@ toml = "0.8.12"
 [dependencies.rusqlite]
 version = "0.31.0"
 features = ["chrono", "bundled"]
-optional = true

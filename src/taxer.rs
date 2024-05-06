@@ -44,7 +44,7 @@ impl<'a> TaxerIncome<'a> {
     {
         let date = self.income.date().format("%d.%m.%Y").to_string();
         let amount = format!("{:.2}", self.income.amount());
-        writer.write_record([&self.tax_number, date.as_str(), &amount, &self.comment])?;
+        writer.write_record([self.tax_number, date.as_str(), &amount, self.comment])?;
         Ok(())
     }
 }
