@@ -1,12 +1,10 @@
 //! Initialize database schema.
 
+use super::migration::base::*;
+use super::migration::v0_2_0::*;
 use super::{
     config::{connect, database_path},
-    migration::{
-        apply_migrations,
-        base::{AddTaxPaidColumnMigration, CreateIncomeTableMigration},
-        Migration,
-    },
+    migration::{apply_migrations, Migration},
 };
 use log::info;
 use rusqlite::Connection;
@@ -15,6 +13,7 @@ pub fn create_schema(conn: &mut Connection) -> anyhow::Result<()> {
     let migrations: Vec<Box<dyn Migration>> = vec![
         Box::new(CreateIncomeTableMigration),
         Box::new(AddTaxPaidColumnMigration),
+        Box::new(AddPaymentNoColumnMigration),
     ];
     apply_migrations(conn, &migrations)
 }

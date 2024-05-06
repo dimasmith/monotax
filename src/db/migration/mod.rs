@@ -7,6 +7,7 @@ use log::info;
 use rusqlite::{params, Connection};
 
 pub mod base;
+pub mod v0_2_0;
 
 pub trait Migration {
     fn id(&self) -> String;
