@@ -34,9 +34,20 @@ fn main() -> anyhow::Result<()> {
             log::info!("Imported {} incomes", imported);
         }
 
-        Command::Taxer { output, filter } => {
+        Command::Taxer {
+            input,
+            output,
+            filter,
+        } => {
             let config = config::load_config()?;
-            let incomes = db::find_by_criteria(filter.criteria())?;
+            let incomes = match input {
+                Some(stmt) => {
+                    let file = File::open(stmt).context("opening input file")?;
+                    universalbank::read_incomes(file, filter.criteria())?
+                }
+                None => db::find_by_criteria(filter.criteria())?,
+            };
+
             let writer: Box<dyn Write> = match output {
                 Some(path) => Box::new(BufWriter::new(File::create(path)?)),
                 None => Box::new(BufWriter::new(stdout())),
@@ -44,12 +55,19 @@ fn main() -> anyhow::Result<()> {
             taxer::export_csv(&incomes, config.taxer(), writer)?;
         }
         Command::Report {
+            input,
             format,
             output,
             filter,
         } => {
             let config = config::load_config()?;
-            let incomes = db::find_by_criteria(filter.criteria())?;
+            let incomes = match input {
+                Some(stmt) => {
+                    let file = File::open(stmt).context("opening input file")?;
+                    universalbank::read_incomes(file, filter.criteria())?
+                }
+                None => db::find_by_criteria(filter.criteria())?,
+            };
             let report = QuarterlyReport::build_report(incomes, config.tax());
             let writer: Box<dyn Write> = match output {
                 Some(path) => Box::new(BufWriter::new(File::create(path)?)),

@@ -32,6 +32,8 @@ pub enum Command {
     },
     /// Export statement csv to taxer csv
     Taxer {
+        /// Input file to export. If specified, the database is ignored.
+        input: Option<PathBuf>,
         /// Output file for taxer csv
         #[clap(short, long)]
         output: Option<PathBuf>,
@@ -40,6 +42,8 @@ pub enum Command {
     },
     /// Generates quarterly tax report of incomes.
     Report {
+        /// Input file to export. If specified, the database is ignored.
+        input: Option<PathBuf>,
         #[clap(short, long)]
         #[arg(value_enum)]
         #[arg(value_enum, default_value_t)]
