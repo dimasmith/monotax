@@ -1,4 +1,12 @@
-//! Application configuration
+//! Application configuration.
+//!
+//! The configuration is stored in the XDG directories. The configuration file is a TOML file.
+//! By default, the configuration file is located in the `~/.config/monotax/config.toml`.
+//!
+//! It is expected that users will edit the configuration file manually.
+//! It's rarely needed to change the configuration after the initial setup.
+//!
+//! Running the `monotax init` command will create the default configuration file.
 
 use directories::ProjectDirs;
 use std::fs;
@@ -51,6 +59,11 @@ pub struct TaxConfig {
     tax_rate: f64,
 }
 
+/// Configuration for the Taxer import.
+///
+/// - The `id` is person's national tax identifier.
+/// - The `account_name` is the name of the account in the Taxer.
+/// - The `default_comment` is a comment that will be used if the income has no comment.
 #[derive(Debug, Serialize, Deserialize)]
 pub struct TaxerImportConfig {
     id: String,
@@ -127,14 +140,18 @@ impl TaxConfig {
 }
 
 impl TaxerImportConfig {
+
+    /// Provide the national tax identifier.
     pub fn id(&self) -> &str {
         &self.id
     }
 
+    /// Provide the name of the account in the Taxer.
     pub fn account_name(&self) -> &str {
         &self.account_name
     }
 
+    /// Provide the default comment that will be used if the income has no comment.
     pub fn default_comment(&self) -> &str {
         &self.default_comment
     }

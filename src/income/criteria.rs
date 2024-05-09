@@ -1,4 +1,36 @@
-//! Universal criteria filters.
+//! Filtering criteria for incomes.
+//!
+//! Criteria allows picking only necessary incomes from the list.
+//! Usually, it's used to filter incomes by year or quarter.
+//!
+//! Main components of filtering API:
+//!
+//! - [`IncomeCriterion`] - a single predicate that income must conform.
+//! - [`IncomeCriteria`] - a combination of all predicates.
+//!
+//! ## Example
+//!
+//! The user wants to see incomes of the Q2 of 2021.
+//! The first criterion is to filter by the year 2021.
+//! The second criterion is to filter by the quarter Q2.
+//! All criteria are combined into a single [`IncomeCriteria`] object.
+//!
+//! ```rust
+//! use monotax::income::criteria::{IncomeCriteria, IncomeCriterion, YearFilter, QuarterFilter};
+//! use monotax::time::Quarter;
+//!
+//! let criteria = IncomeCriteria::new(&[
+//!     IncomeCriterion::Year(YearFilter::One(2021)),
+//!     IncomeCriterion::Quarter(QuarterFilter::Only(Quarter::Q2)),
+//! ]);
+//! ```
+//!
+//! ## Implementations
+//!
+//! Criteria are implemented for directly filtering iterables of incomes,
+//! and also to translate to SQL queries.
+//! This way the user can use the same criteria to filter incomes in memory and in the database.
+
 
 use crate::time::Quarter;
 

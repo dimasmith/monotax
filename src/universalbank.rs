@@ -1,3 +1,6 @@
+//! Import format for DBOsoft banking export
+//!
+//! The format is used by the popular online bank.
 use std::io::{BufReader, Read};
 
 use anyhow::Context;

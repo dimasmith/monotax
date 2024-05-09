@@ -1,3 +1,8 @@
+//! Integration with Taxer software.
+//!
+//! The [taxer](https://taxer.ua/) is a Ukrainian software for accounting and tax reporting.
+//! This module provides a way to export income data to a CSV file that can be imported into Taxer.
+
 use std::io::Write;
 
 use csv::Writer;
@@ -10,6 +15,7 @@ pub struct TaxerIncome<'a> {
     comment: &'a str,
 }
 
+/// Export incomes to a CSV file that can be imported into Taxer.
 pub fn export_csv<W>(
     income: impl IntoIterator<Item = Income>,
     config: &TaxerImportConfig,
