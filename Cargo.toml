@@ -19,11 +19,14 @@ env_logger = "0.11.3"
 log = "0.4.21"
 serde = { version = "1.0.197", features = ["derive"] }
 tokio = { version = "1", features = ["rt", "rt-multi-thread", "macros"] }
+# todo: allow library upgrades once the migration to sqlx is complete
+sqlx = { version = "=0.7.4", features = ["macros", "sqlite", "runtime-tokio"] }
 toml = "0.8.12"
 
+# todo: remove depenency once the migration to sqlx is complete
 [dependencies.rusqlite]
-version = "0.31.0"
-features = ["chrono", "bundled"]
+version = "=0.30.0"
+features = ["chrono"]
 
 [workspace.metadata.cross.target.aarch64-unknown-linux-gnu]
 image = "cross-raspbian:aarch64"
