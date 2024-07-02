@@ -2,3 +2,10 @@
 
 .idea/
 .vscode/
+
+# local env file is individual for each developer
+.env
+
+# sqlite files (development database and locks)
+*.db
+*.db.*
