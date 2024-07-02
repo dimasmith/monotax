@@ -31,7 +31,6 @@
 //! and also to translate to SQL queries.
 //! This way the user can use the same criteria to filter incomes in memory and in the database.
 
-
 use crate::time::Quarter;
 
 /// A set of filtering criteria to pick necessary incomes.

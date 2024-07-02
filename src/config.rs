@@ -140,7 +140,6 @@ impl TaxConfig {
 }
 
 impl TaxerImportConfig {
-
     /// Provide the national tax identifier.
     pub fn id(&self) -> &str {
         &self.id
