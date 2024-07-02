@@ -22,7 +22,7 @@ mod cli;
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
     // Read local .env file
-    dotenvy::dotenv()?;
+    let _ = dotenvy::dotenv();
     // Initialize logging
     let env = Env::default().filter_or("RUST_LOG", "monotax=info");
     Builder::from_env(env).init();
