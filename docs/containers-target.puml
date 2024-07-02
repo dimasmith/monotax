@@ -1,0 +1,31 @@
+@startuml containers-target
+title Monotax: Containers
+footer target
+!include <C4/C4_Container>
+
+Person(enterpreneur, "Private Enterpreneur", "Owner of a small business. Keeps track of incomes to pay correct amount of taxes and provide intact reports")
+
+System_Boundary(monotax, "Monotax") {
+    Container(monotax_cli, "Monotax CLI", "Rust", "Lightweigh CLI for accessing Monotax Service from terminal.")
+    Container(monotax_web, "Monotax Web", "", "Web UI to handle monotax data.")
+    Container(monotax_app, "Monotax App", "Rust", "Local CLI for monotax. Works on the machine with the Monotax DB.")
+    Container(monotax_service, "Monotax Service", "Rust", "REST service providing all functionality of Monotax.")
+    ContainerDb(monotax_db, "Monotax DB", "SQLite", "Keeps incomes and taxation settings. Keeps tax payments state.")
+
+    Rel(monotax_app, monotax_db, "Stores data in")
+    Rel(monotax_service, monotax_db, "Stores data in")
+    Rel(monotax_cli, monotax_service, "Performs operations using")
+    Rel(monotax_web, monotax_service, "Visualises data from")
+}
+
+System_Ext(taxer, "Taxer", "Keeps track of incomes. Generate tax declarations. Sends tax declarations to fiscal services.")
+System_Ext(universalbank, "Universal Bank", "A bank where interpreneur keeps accounts. Provides a report on incomes.")
+
+Rel(monotax_app, taxer, "Generates report for")
+Rel(monotax_app, universalbank, "Parses statements from")
+
+Rel(enterpreneur, monotax_cli, "Uses")
+Rel(enterpreneur, monotax_web, "Uses")
+Rel(enterpreneur, monotax_app, "Uses")
+
+@enduml

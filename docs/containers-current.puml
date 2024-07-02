@@ -1,0 +1,22 @@
+@startuml containers-0.2.0
+title Monotax: Containers
+footer v0.2.0
+!include <C4/C4_Container>
+
+Person(enterpreneur, "Private Enterpreneur", "Owner of a small business. Keeps track of incomes to pay correct amount of taxes and provide intact reports")
+
+System_Boundary(monotax, "Monotax") {
+    Container(monotax_app, "Monotax App", "Rust", "Records incomes. Keeps track of tax payments. Generates tax reports for enterpreneurs and external systems")
+    ContainerDb(monotax_db, "Monotax DB", "SQLite", "Keeps incomes and taxation settings. Keeps tax payments state.")
+    Rel(monotax_app, monotax_db, "Stores data in")
+}
+
+System_Ext(taxer, "Taxer", "Keeps track of incomes. Generate tax declarations. Sends tax declarations to fiscal services.")
+System_Ext(universalbank, "Universal Bank", "A bank where interpreneur keeps accounts. Provides a report on incomes.")
+
+Rel(monotax_app, taxer, "Generates report for")
+Rel(monotax_app, universalbank, "Parses statements from")
+
+Rel(enterpreneur, monotax_app, "Uses")
+
+@enduml

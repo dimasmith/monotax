@@ -1,0 +1,19 @@
+@startuml context
+title Monotax: system context
+!include <C4/C4_Context>
+
+Person(enterpreneur, "Private Enterpreneur", "Owner of a small business. Keeps track of incomes to pay correct amount of taxes and provide intact reports")
+
+System(monotax, "Monotax", "Records incomes. Keeps track of tax payments. Generates tax reports for enterpreneurs and external systems")
+
+System_Ext(taxer, "Taxer", "Keeps track of incomes. Generate tax declarations. Sends tax declarations to fiscal services.")
+System_Ext(universalbank, "Universal Bank", "A bank where interpreneur keeps accounts. Provides a report on incomes.")
+System_Ext(fiscal, "Fiscal Gateway", "Processes incoming tax declarations.")
+
+Rel(enterpreneur, monotax, "Track payments and reports")
+Rel(enterpreneur, taxer, "Send declarations using")
+Rel(enterpreneur, universalbank, "Exports income reports from")
+Rel(monotax, taxer, "Generates income reports for")
+Rel(monotax, universalbank, "Read incomes from")
+Rel(taxer, fiscal, "Send declarations to")
+@enduml
