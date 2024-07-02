@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.0] - 2024-07-02
+
 ### Added
 
 - Cross-compilation support for ARM architecture
@@ -32,6 +34,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Filter incomes and reports on quarters and years
 - Generate reports in taxer format
 
-[unreleased]: https://github.com/dimasmith/monotax/compare/0.1.1...HEAD
+[unreleased]: https://github.com/dimasmith/monotax/compare/0.2.0...HEAD
+[0.2.0]: https://github.com/dimasmith/monotax/compare/0.1.0...0.2.0
 [0.1.1]: https://github.com/dimasmith/monotax/compare/0.1.0...0.1.1
 [0.1.0]: https://github.com/dimasmith/monotax/releases/tag/0.1.0
