@@ -19,7 +19,8 @@ use monotax::{config, init, report, taxer, universalbank};
 
 mod cli;
 
-fn main() -> anyhow::Result<()> {
+#[tokio::main]
+async fn main() -> anyhow::Result<()> {
     // Initialize logging
     let env = Env::default().filter_or("RUST_LOG", "monotax=info");
     Builder::from_env(env).init();
