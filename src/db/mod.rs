@@ -12,7 +12,6 @@ mod config;
 pub mod criteria;
 mod date;
 pub mod init;
-mod migration;
 pub mod repository;
 
 pub fn save_all(incomes: &[Income]) -> anyhow::Result<usize> {
