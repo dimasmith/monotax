@@ -1,0 +1,16 @@
+FROM debian:bookworm
+
+RUN apt-get update && \
+    apt-get install -y \
+    gcc-aarch64-linux-gnu \
+    libc6-dev-arm64-cross \
+    qemu-user-static \
+    curl
+
+# Install Rust
+RUN which curl
+RUN curl https://sh.rustup.rs --output rustup.sh && chmod +x rustup.sh && ./rustup.sh -y
+ENV PATH=/root/.cargo/bin:$PATH
+
+# Install Rust target
+RUN rustup target add aarch64-unknown-linux-gnu

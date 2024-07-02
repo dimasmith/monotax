@@ -23,3 +23,6 @@ toml = "0.8.12"
 [dependencies.rusqlite]
 version = "0.31.0"
 features = ["chrono", "bundled"]
+
+[workspace.metadata.cross.target.aarch64-unknown-linux-gnu]
+image = "cross-raspbian:aarch64"

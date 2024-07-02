@@ -29,3 +29,7 @@ Using storage by default leads to a few significant changes.
 There won't be a separate mode to work with input CSV files.
 You still can analyze CSV files on the fly, but you need to import incomes into the storage to preserve history and mark payments as done. 
 
+## Cross-compilation
+
+This project can be cross-compiled for the Raspberry Pi (64-bit).
+Please check the build directory for more information.
