@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Database migrations are handled by sqlx. It's a breaking change and requires reloading data.
+
 ## [0.2.0] - 2024-07-02
 
 ### Added
