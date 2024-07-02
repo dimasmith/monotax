@@ -1,5 +1,5 @@
+use crate::common::connect_to_test_db;
 use chrono::NaiveDateTime;
-use monotax::db;
 use monotax::db::repository::find_incomes;
 use monotax::db::repository::load_all_incomes;
 use monotax::db::repository::save_incomes;
@@ -9,17 +9,17 @@ use monotax::income::criteria::QuarterFilter;
 use monotax::income::criteria::YearFilter;
 use monotax::income::Income;
 use monotax::time::Quarter;
-use rusqlite::Connection;
+
+mod common;
 
 fn income(datetime: &str, amount: f64) -> Income {
     let datetime = NaiveDateTime::parse_from_str(datetime, "%Y-%m-%d %H:%M:%S").unwrap();
     Income::new(datetime, amount)
 }
 
-#[test]
-fn save_and_load_incomes() {
-    let mut conn = Connection::open_in_memory().unwrap();
-    db::init::create_schema(&mut conn).unwrap();
+#[tokio::test]
+async fn save_and_load_incomes() {
+    let mut conn = connect_to_test_db().await;
 
     let income1 = income("2024-04-13 14:00:00", 225.0);
     let income2 = income("2024-07-13 14:00:00", 325.0);
@@ -35,10 +35,9 @@ fn save_and_load_incomes() {
     assert_eq!(incomes[1], income2);
 }
 
-#[test]
-fn ignore_duplicate_incomes() {
-    let mut conn = Connection::open_in_memory().unwrap();
-    db::init::create_schema(&mut conn).unwrap();
+#[tokio::test]
+async fn ignore_duplicate_incomes() {
+    let mut conn = connect_to_test_db().await;
 
     let income1 = income("2024-04-13 14:00:00", 225.0);
     let income2 = income("2024-07-13 14:00:00", 325.0);
@@ -58,10 +57,9 @@ fn ignore_duplicate_incomes() {
     assert_eq!(incomes[1], income2);
 }
 
-#[test]
-fn filter_incomes_on_quarters() {
-    let mut conn = Connection::open_in_memory().unwrap();
-    db::init::create_schema(&mut conn).unwrap();
+#[tokio::test]
+async fn filter_incomes_on_quarters() {
+    let mut conn = connect_to_test_db().await;
 
     let q1_2024 = income("2024-01-13 14:00:00", 125.0);
     let q2_2024 = income("2024-04-13 14:00:00", 225.0);
@@ -109,10 +107,9 @@ fn filter_incomes_on_quarters() {
     );
 }
 
-#[test]
-fn filter_incomes_on_years() {
-    let mut conn = Connection::open_in_memory().unwrap();
-    db::init::create_schema(&mut conn).unwrap();
+#[tokio::test]
+async fn filter_incomes_on_years() {
+    let mut conn = connect_to_test_db().await;
 
     let y2023 = income("2023-01-13 14:00:00", 125.0);
     let y2024 = income("2024-01-13 14:00:00", 225.0);
@@ -141,10 +138,9 @@ fn filter_incomes_on_years() {
     );
 }
 
-#[test]
-fn filter_incomes_on_quarters_and_years() {
-    let mut conn = Connection::open_in_memory().unwrap();
-    db::init::create_schema(&mut conn).unwrap();
+#[tokio::test]
+async fn filter_incomes_on_quarters_and_years() {
+    let mut conn = connect_to_test_db().await;
 
     let q1_2023 = income("2023-01-13 14:00:00", 125.0);
     let q2_2023 = income("2023-04-13 14:00:00", 225.0);
