@@ -21,6 +21,8 @@ mod cli;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
+    // Read local .env file
+    dotenvy::dotenv()?;
     // Initialize logging
     let env = Env::default().filter_or("RUST_LOG", "monotax=info");
     Builder::from_env(env).init();
@@ -28,7 +30,7 @@ async fn main() -> anyhow::Result<()> {
     let cli = Cli::parse();
 
     match &cli.command {
-        Command::Init { force } => init::init(*force)?,
+        Command::Init { force } => init::init(*force).await?,
         Command::Import { statement, filter } => {
             let incomes = incomes(&Some(statement.clone()), filter)?;
             let imported = db::save_all(&incomes.into_iter().collect::<Vec<_>>())?;

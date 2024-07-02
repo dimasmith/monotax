@@ -881,6 +881,7 @@ dependencies = [
  "clap",
  "csv",
  "directories",
+ "dotenvy",
  "encoding_rs",
  "encoding_rs_rw",
  "env_logger",

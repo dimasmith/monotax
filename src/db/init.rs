@@ -1,13 +1,13 @@
 //! Initialize database schema.
 
+use super::config::database_path;
+use super::migration::apply_migrations;
 use super::migration::base::*;
 use super::migration::v0_2_0::*;
-use super::{
-    config::{connect, database_path},
-    migration::{apply_migrations, Migration},
-};
+use super::migration::Migration;
 use log::info;
 use rusqlite::Connection;
+use sqlx::{migrate, SqlitePool};
 
 pub fn create_schema(conn: &mut Connection) -> anyhow::Result<()> {
     let migrations: Vec<Box<dyn Migration>> = vec![
@@ -29,9 +29,11 @@ pub fn initialize_db_file() -> anyhow::Result<()> {
     Ok(())
 }
 
-pub fn initialize_db() -> anyhow::Result<()> {
+pub async fn initialize_db() -> anyhow::Result<()> {
     initialize_db_file()?;
-    let mut conn = connect()?;
-    create_schema(&mut conn)?;
+    let db_path = database_path()?;
+    let url = format!("sqlite:{}", db_path.as_path().display());
+    let conn = SqlitePool::connect(&url).await?;
+    migrate!("./migrations").run(&conn).await?;
     Ok(())
 }

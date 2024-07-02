@@ -1,4 +1,3 @@
-#[cfg(feature = "sqlite")]
 mod sqlite_repository {
     use chrono::NaiveDateTime;
     use monotax::{
