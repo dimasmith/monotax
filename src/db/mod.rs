@@ -8,11 +8,15 @@ use crate::config::load_config;
 use crate::domain::income::Income;
 use crate::domain::payment::Payment;
 
-mod config;
+pub mod config;
 pub mod criteria;
 mod date;
 pub mod init;
 pub mod repository;
+
+pub trait IncomeRepository {
+    fn save_all(&mut self, incomes: &[Income]) -> anyhow::Result<usize>;
+}
 
 pub fn save_all(incomes: &[Income]) -> anyhow::Result<usize> {
     let mut conn = connect()?;

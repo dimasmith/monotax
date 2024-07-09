@@ -4,13 +4,15 @@ use std::path::PathBuf;
 
 use anyhow::Context;
 
+use crate::infra::rusqlite::income::RusqliteIncomeRepository;
 use clap::Parser;
 use cli::filter::FilterArgs;
 use cli::payment::PaymentCommands;
 use cli::ReportFormat;
 use cli::{Cli, Command};
 use env_logger::{Builder, Env};
-use monotax::db::{self, find_payments_by_criteria, mark_paid, mark_unpaid};
+use monotax::db::config::connect;
+use monotax::db::{self, find_payments_by_criteria, mark_paid, mark_unpaid, IncomeRepository};
 use monotax::domain::income::Income;
 use monotax::payment::report::plaintext::plaintext_report;
 use monotax::payment::report::PaymentReport;
@@ -18,6 +20,7 @@ use monotax::report::QuarterlyReport;
 use monotax::{config, init, report, taxer, universalbank};
 
 mod cli;
+mod infra;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
@@ -32,7 +35,8 @@ async fn main() -> anyhow::Result<()> {
     match &cli.command {
         Command::Init { force } => init::init(*force).await?,
         Command::Import { statement, filter } => {
-            import_incomes(statement, filter)?;
+            let mut income_repo = infra::rusqlite::create_income_repo()?;
+            import_incomes(&mut income_repo, statement, filter)?;
         }
 
         Command::Taxer {
@@ -113,9 +117,13 @@ fn generate_taxer_report(
     Ok(())
 }
 
-fn import_incomes(statement: &PathBuf, filter: &FilterArgs) -> anyhow::Result<()> {
+fn import_incomes(
+    income_repo: &mut impl IncomeRepository,
+    statement: &PathBuf,
+    filter: &FilterArgs,
+) -> anyhow::Result<()> {
     let incomes = read_incomes(&Some(statement.clone()), filter)?;
-    let imported = db::save_all(&incomes.into_iter().collect::<Vec<_>>())?;
+    let imported = income_repo.save_all(&incomes.into_iter().collect::<Vec<_>>())?;
     log::info!("Imported {} incomes", imported);
     Ok(())
 }
