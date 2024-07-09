@@ -1,12 +1,9 @@
 use chrono::{Datelike, NaiveDateTime};
 use rusqlite::{named_params, Connection, Row, ToSql};
 
-use crate::{
-    income::{criteria::IncomeCriteria, Income},
-    time::Quarter,
-};
-
 use super::criteria::SqlCriteria;
+use crate::domain::income::Income;
+use crate::{income::criteria::IncomeCriteria, time::Quarter};
 
 pub fn save_incomes(conn: &mut Connection, incomes: &[Income]) -> anyhow::Result<usize> {
     let income_records = incomes.iter().map(IncomeRecord::from);

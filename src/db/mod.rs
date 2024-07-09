@@ -2,11 +2,11 @@
 //! The database keeps incomes to query them later.
 //! It can be used as a data source instead of reading bank CSV every time.
 
-use crate::config::load_config;
-use crate::{income::Income, payment::Payment};
-
 use self::config::connect;
 use self::criteria::SqlCriteria;
+use crate::config::load_config;
+use crate::domain::income::Income;
+use crate::payment::Payment;
 
 mod config;
 pub mod criteria;

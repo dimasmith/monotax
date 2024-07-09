@@ -7,7 +7,8 @@ use std::io::Write;
 
 use csv::Writer;
 
-use crate::{config::TaxerImportConfig, income::Income};
+use crate::config::TaxerImportConfig;
+use crate::domain::income::Income;
 
 pub struct TaxerIncome<'a> {
     income: &'a Income,
