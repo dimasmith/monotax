@@ -1,4 +1,4 @@
-use super::Payment;
+use crate::domain::payment::Payment;
 
 pub mod plaintext;
 
@@ -33,8 +33,8 @@ impl PaymentReport {
     pub fn total_debt(&self) -> f64 {
         self.payments
             .iter()
-            .filter(|p| !p.paid)
-            .map(|p| p.tax_amount)
+            .filter(|p| !p.paid())
+            .map(|p| p.tax_amount())
             .sum()
     }
 }
