@@ -6,7 +6,7 @@ use self::config::connect;
 use self::criteria::SqlCriteria;
 use crate::config::load_config;
 use crate::domain::income::Income;
-use crate::payment::Payment;
+use crate::domain::payment::Payment;
 
 mod config;
 pub mod criteria;
