@@ -3,11 +3,11 @@ use chrono::NaiveDateTime;
 use monotax::db::repository::find_incomes;
 use monotax::db::repository::load_all_incomes;
 use monotax::db::repository::save_incomes;
+use monotax::domain::income::Income;
 use monotax::income::criteria::IncomeCriteria;
 use monotax::income::criteria::IncomeCriterion;
 use monotax::income::criteria::QuarterFilter;
 use monotax::income::criteria::YearFilter;
-use monotax::income::Income;
 use monotax::time::Quarter;
 
 mod common;

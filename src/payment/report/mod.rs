@@ -43,7 +43,7 @@ impl PaymentReport {
 mod tests {
     use chrono::{Duration, Local, NaiveDate};
 
-    use crate::income::Income;
+    use crate::domain::income::Income;
 
     use super::*;
 

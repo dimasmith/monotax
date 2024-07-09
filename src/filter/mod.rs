@@ -1,7 +1,7 @@
 //! Filters for incomes.
 
+use crate::domain::income::Income;
 use crate::income::criteria::{IncomeCriteria, IncomeCriterion};
-use crate::income::Income;
 
 pub mod date;
 
@@ -12,7 +12,7 @@ pub mod date;
 ///
 /// # Example
 /// ```rust
-/// # use monotax::income::Income;
+/// # use monotax::domain::income::Income;
 /// # use monotax::filter::IncomePredicate;
 /// # use chrono::{NaiveDateTime, NaiveDate};
 /// struct LowerAmountPredicate {

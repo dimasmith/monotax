@@ -9,8 +9,8 @@ use csv::StringRecord;
 use encoding_rs::WINDOWS_1251;
 use encoding_rs_rw::DecodingReader;
 
+use crate::domain::income::Income;
 use crate::filter::IncomePredicate;
-use crate::income::Income;
 
 const DATE_COLUMN: usize = 4;
 const AMOUNT_COLUMN: usize = 14;

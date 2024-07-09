@@ -11,7 +11,7 @@ use cli::ReportFormat;
 use cli::{Cli, Command};
 use env_logger::{Builder, Env};
 use monotax::db::{self, find_payments_by_criteria, mark_paid, mark_unpaid};
-use monotax::income::Income;
+use monotax::domain::income::Income;
 use monotax::payment::report::plaintext::plaintext_report;
 use monotax::payment::report::PaymentReport;
 use monotax::report::QuarterlyReport;

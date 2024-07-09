@@ -3,7 +3,7 @@
 use chrono::{Datelike, NaiveDate};
 
 use crate::config::TaxConfig;
-use crate::income::Income;
+use crate::domain::income::Income;
 use crate::time::Quarter;
 
 pub mod console;
