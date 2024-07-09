@@ -32,9 +32,7 @@ async fn main() -> anyhow::Result<()> {
     match &cli.command {
         Command::Init { force } => init::init(*force).await?,
         Command::Import { statement, filter } => {
-            let incomes = incomes(&Some(statement.clone()), filter)?;
-            let imported = db::save_all(&incomes.into_iter().collect::<Vec<_>>())?;
-            log::info!("Imported {} incomes", imported);
+            import_incomes(statement, filter)?;
         }
 
         Command::Taxer {
@@ -42,10 +40,7 @@ async fn main() -> anyhow::Result<()> {
             output,
             filter,
         } => {
-            let config = config::load_config()?;
-            let incomes = incomes(input, filter)?;
-            let writer = writer(output)?;
-            taxer::export_csv(incomes, config.taxer(), writer)?;
+            generate_taxer_report(input, output, filter)?;
         }
         Command::Report {
             input,
@@ -53,31 +48,75 @@ async fn main() -> anyhow::Result<()> {
             output,
             filter,
         } => {
-            let config = config::load_config()?;
-            let incomes = incomes(input, filter)?;
-            let report = QuarterlyReport::build_report(incomes, config.tax());
-            let writer = writer(output)?;
-            match format {
-                ReportFormat::Console => report::console::pretty_print(&report, writer)?,
-                ReportFormat::Csv => report::csv::render_csv(&report, writer)?,
-            };
+            generate_incomes_report(input, format, output, filter)?;
         }
         Command::Payments { command } => match command {
             PaymentCommands::Report { output, filter } => {
-                let payments = find_payments_by_criteria(filter.criteria())?;
-                let report = PaymentReport::from_payments(payments);
-                let writer = writer(output)?;
-                plaintext_report(&report, writer)?;
+                report_payments(output, filter)?;
             }
             PaymentCommands::Pay { payment_no } => {
-                mark_paid(*payment_no)?;
+                pay_tax(payment_no)?;
             }
             PaymentCommands::Unpay { payment_no } => {
-                mark_unpaid(*payment_no)?;
+                cancel_tax_payment(payment_no)?;
             }
         },
     }
 
+    Ok(())
+}
+
+fn cancel_tax_payment(payment_no: &i64) -> anyhow::Result<()> {
+    mark_unpaid(*payment_no)?;
+    Ok(())
+}
+
+fn pay_tax(payment_no: &i64) -> anyhow::Result<()> {
+    mark_paid(*payment_no)?;
+    Ok(())
+}
+
+fn report_payments(output: &Option<PathBuf>, filter: &FilterArgs) -> anyhow::Result<()> {
+    let payments = find_payments_by_criteria(filter.criteria())?;
+    let report = PaymentReport::from_payments(payments);
+    let writer = writer(output)?;
+    plaintext_report(&report, writer)?;
+    Ok(())
+}
+
+fn generate_incomes_report(
+    input: &Option<PathBuf>,
+    format: &ReportFormat,
+    output: &Option<PathBuf>,
+    filter: &FilterArgs,
+) -> anyhow::Result<()> {
+    let config = config::load_config()?;
+    let incomes = read_incomes(input, filter)?;
+    let report = QuarterlyReport::build_report(incomes, config.tax());
+    let writer = writer(output)?;
+    match format {
+        ReportFormat::Console => report::console::pretty_print(&report, writer)?,
+        ReportFormat::Csv => report::csv::render_csv(&report, writer)?,
+    };
+    Ok(())
+}
+
+fn generate_taxer_report(
+    input: &Option<PathBuf>,
+    output: &Option<PathBuf>,
+    filter: &FilterArgs,
+) -> anyhow::Result<()> {
+    let config = config::load_config()?;
+    let incomes = read_incomes(input, filter)?;
+    let writer = writer(output)?;
+    taxer::export_csv(incomes, config.taxer(), writer)?;
+    Ok(())
+}
+
+fn import_incomes(statement: &PathBuf, filter: &FilterArgs) -> anyhow::Result<()> {
+    let incomes = read_incomes(&Some(statement.clone()), filter)?;
+    let imported = db::save_all(&incomes.into_iter().collect::<Vec<_>>())?;
+    log::info!("Imported {} incomes", imported);
     Ok(())
 }
 
@@ -89,7 +128,7 @@ fn writer(output: &Option<PathBuf>) -> anyhow::Result<Box<dyn Write>> {
     Ok(writer)
 }
 
-fn incomes(
+fn read_incomes(
     input: &Option<PathBuf>,
     filter: &FilterArgs,
 ) -> anyhow::Result<impl IntoIterator<Item = Income>> {
