@@ -3,36 +3,7 @@ use rusqlite::{named_params, Connection, Row, ToSql};
 
 use super::criteria::SqlCriteria;
 use crate::domain::income::Income;
-use crate::{income::criteria::IncomeCriteria, time::Quarter};
-
-pub fn save_incomes(conn: &mut Connection, incomes: &[Income]) -> anyhow::Result<usize> {
-    let income_records = incomes.iter().map(IncomeRecord::from);
-
-    let mut updated = 0;
-    let tx = conn.transaction()?;
-    let max_payment_no: i64 = tx
-        .query_row("SELECT MAX(payment_no) FROM income", [], |r| r.get(0))
-        .unwrap_or_default();
-    for (n, income) in income_records.enumerate() {
-        let payment_no = max_payment_no + 1 + n as i64;
-        updated += tx.execute(
-            "INSERT OR IGNORE INTO income (date, amount, payment_no, description, year, quarter, tax_paid) 
-            VALUES (:date, :amount, :payment_no, :description, :year, :quarter, :tax_paid)",
-            named_params![
-                ":date": income.date.to_string(),
-                ":amount": income.amount,
-                ":payment_no": payment_no,
-                ":description": income.description,
-                ":year": income.year,
-                ":quarter": income.quarter,
-                ":tax_paid": income.tax_paid,
-            ],
-        )?;
-    }
-    tx.commit()?;
-
-    Ok(updated)
-}
+use crate::time::Quarter;
 
 pub fn save_tax_paid(conn: &Connection, payment_no: i64, tax_paid: bool) -> anyhow::Result<()> {
     let marked = conn.execute(
@@ -44,23 +15,6 @@ pub fn save_tax_paid(conn: &Connection, payment_no: i64, tax_paid: bool) -> anyh
     )?;
     anyhow::ensure!(marked == 1, "payment {} does not exist", payment_no);
     Ok(())
-}
-
-pub fn load_all_incomes(conn: &mut Connection) -> anyhow::Result<Vec<Income>> {
-    find_incomes(conn, IncomeCriteria::new(&[]))
-}
-
-pub fn find_incomes(
-    conn: &mut Connection,
-    criteria: impl SqlCriteria,
-) -> anyhow::Result<Vec<Income>> {
-    let records = find_records_by(conn, criteria)?;
-    let incomes: Vec<Income> = records
-        .into_iter()
-        .map(|r| r.into_income())
-        .collect::<Vec<_>>();
-
-    Ok(incomes)
 }
 
 pub(super) fn find_records_by(
@@ -143,10 +97,6 @@ impl IncomeRecord {
     }
 
     pub(super) fn income(&self) -> Income {
-        Income::new(self.date, self.amount).with_no(self.payment_no)
-    }
-
-    fn into_income(self) -> Income {
         Income::new(self.date, self.amount).with_no(self.payment_no)
     }
 }

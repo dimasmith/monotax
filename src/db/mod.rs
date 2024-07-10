@@ -9,9 +9,10 @@ use self::rusqlite::connect::connect;
 use crate::config::load_config;
 use crate::domain::income::Income;
 use crate::domain::payment::Payment;
+use crate::income::criteria::IncomeCriteria;
 
 pub mod config;
-pub mod criteria;
+mod criteria;
 mod date;
 pub mod init;
 pub mod repository;
@@ -22,21 +23,8 @@ pub trait IncomeRepository {
     async fn save_all(&mut self, incomes: &[Income]) -> anyhow::Result<usize>;
 
     async fn find_all(&mut self) -> anyhow::Result<Vec<Income>>;
-}
 
-pub fn save_all(incomes: &[Income]) -> anyhow::Result<usize> {
-    let mut conn = connect()?;
-    repository::save_incomes(&mut conn, incomes)
-}
-
-pub fn find_all() -> anyhow::Result<Vec<Income>> {
-    let mut conn = connect()?;
-    repository::load_all_incomes(&mut conn)
-}
-
-pub fn find_by_criteria(criteria: impl SqlCriteria) -> anyhow::Result<Vec<Income>> {
-    let mut conn = connect()?;
-    repository::find_incomes(&mut conn, criteria)
+    async fn find_by(&mut self, criteria: IncomeCriteria) -> anyhow::Result<Vec<Income>>;
 }
 
 pub fn find_payments_by_criteria(criteria: impl SqlCriteria) -> anyhow::Result<Vec<Payment>> {
