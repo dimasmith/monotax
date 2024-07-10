@@ -19,6 +19,8 @@ pub mod repository;
 #[async_trait]
 pub trait IncomeRepository {
     async fn save_all(&mut self, incomes: &[Income]) -> anyhow::Result<usize>;
+
+    async fn find_all(&mut self) -> anyhow::Result<Vec<Income>>;
 }
 
 pub fn save_all(incomes: &[Income]) -> anyhow::Result<usize> {
