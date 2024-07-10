@@ -2,6 +2,8 @@
 //! The database keeps incomes to query them later.
 //! It can be used as a data source instead of reading bank CSV every time.
 
+use async_trait::async_trait;
+
 use self::config::connect;
 use self::criteria::SqlCriteria;
 use crate::config::load_config;
@@ -14,8 +16,9 @@ mod date;
 pub mod init;
 pub mod repository;
 
+#[async_trait]
 pub trait IncomeRepository {
-    fn save_all(&mut self, incomes: &[Income]) -> anyhow::Result<usize>;
+    async fn save_all(&mut self, incomes: &[Income]) -> anyhow::Result<usize>;
 }
 
 pub fn save_all(incomes: &[Income]) -> anyhow::Result<usize> {
