@@ -10,6 +10,7 @@ use cli::payment::PaymentCommands;
 use cli::ReportFormat;
 use cli::{Cli, Command};
 use env_logger::{Builder, Env};
+use monotax::db::rusqlite::create_income_repo;
 use monotax::db::{find_payments_by_criteria, mark_paid, mark_unpaid, IncomeRepository};
 use monotax::domain::income::Income;
 use monotax::payment::report::plaintext::plaintext_report;
@@ -19,7 +20,6 @@ use monotax::{config, init, report, taxer, universalbank};
 use tokio::task::block_in_place;
 
 mod cli;
-mod infra;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
@@ -34,7 +34,7 @@ async fn main() -> anyhow::Result<()> {
     match &cli.command {
         Command::Init { force } => init::init(*force).await?,
         Command::Import { statement, filter } => {
-            let mut income_repo = infra::rusqlite::create_income_repo()?;
+            let mut income_repo = create_income_repo()?;
             import_incomes(&mut income_repo, statement, filter).await?;
         }
 
@@ -43,7 +43,7 @@ async fn main() -> anyhow::Result<()> {
             output,
             filter,
         } => {
-            let mut income_repo = infra::rusqlite::create_income_repo()?;
+            let mut income_repo = create_income_repo()?;
             generate_taxer_report(&mut income_repo, input, output, filter).await?;
         }
         Command::Report {
@@ -52,7 +52,7 @@ async fn main() -> anyhow::Result<()> {
             output,
             filter,
         } => {
-            let mut income_repo = infra::rusqlite::create_income_repo()?;
+            let mut income_repo = create_income_repo()?;
             generate_incomes_report(&mut income_repo, input, format, output, filter).await?;
         }
         Command::Payments { command } => match command {

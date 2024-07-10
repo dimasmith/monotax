@@ -1,7 +1,7 @@
+use crate::db::repository::{load_all_incomes, save_incomes};
+use crate::db::IncomeRepository;
+use crate::domain::income::Income;
 use async_trait::async_trait;
-use monotax::db::repository::{load_all_incomes, save_incomes};
-use monotax::db::IncomeRepository;
-use monotax::domain::income::Income;
 use rusqlite::Connection;
 use tokio::task::block_in_place;
 
