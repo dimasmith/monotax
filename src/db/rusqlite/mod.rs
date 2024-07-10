@@ -1,6 +1,7 @@
-use crate::db::config::connect;
-use crate::infra::rusqlite::income::RusqliteIncomeRepository;
+use self::connect::connect;
+use crate::db::rusqlite::income::RusqliteIncomeRepository;
 
+pub mod connect;
 pub mod income;
 
 pub fn create_income_repo() -> anyhow::Result<RusqliteIncomeRepository> {

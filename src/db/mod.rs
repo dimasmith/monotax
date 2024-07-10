@@ -4,8 +4,8 @@
 
 use async_trait::async_trait;
 
-use self::config::connect;
 use self::criteria::SqlCriteria;
+use self::rusqlite::connect::connect;
 use crate::config::load_config;
 use crate::domain::income::Income;
 use crate::domain::payment::Payment;
@@ -15,6 +15,7 @@ pub mod criteria;
 mod date;
 pub mod init;
 pub mod repository;
+pub mod rusqlite;
 
 #[async_trait]
 pub trait IncomeRepository {
