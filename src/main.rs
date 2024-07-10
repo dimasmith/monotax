@@ -10,12 +10,13 @@ use cli::payment::PaymentCommands;
 use cli::ReportFormat;
 use cli::{Cli, Command};
 use env_logger::{Builder, Env};
-use monotax::db::{self, find_payments_by_criteria, mark_paid, mark_unpaid, IncomeRepository};
+use monotax::db::{find_payments_by_criteria, mark_paid, mark_unpaid, IncomeRepository};
 use monotax::domain::income::Income;
 use monotax::payment::report::plaintext::plaintext_report;
 use monotax::payment::report::PaymentReport;
 use monotax::report::QuarterlyReport;
 use monotax::{config, init, report, taxer, universalbank};
+use tokio::task::block_in_place;
 
 mod cli;
 mod infra;
@@ -42,7 +43,8 @@ async fn main() -> anyhow::Result<()> {
             output,
             filter,
         } => {
-            generate_taxer_report(input, output, filter)?;
+            let mut income_repo = infra::rusqlite::create_income_repo()?;
+            generate_taxer_report(&mut income_repo, input, output, filter).await?;
         }
         Command::Report {
             input,
@@ -50,7 +52,8 @@ async fn main() -> anyhow::Result<()> {
             output,
             filter,
         } => {
-            generate_incomes_report(input, format, output, filter)?;
+            let mut income_repo = infra::rusqlite::create_income_repo()?;
+            generate_incomes_report(&mut income_repo, input, format, output, filter).await?;
         }
         Command::Payments { command } => match command {
             PaymentCommands::Report { output, filter } => {
@@ -86,14 +89,15 @@ fn report_payments(output: &Option<PathBuf>, filter: &FilterArgs) -> anyhow::Res
     Ok(())
 }
 
-fn generate_incomes_report(
+async fn generate_incomes_report(
+    income_repo: &mut impl IncomeRepository,
     input: &Option<PathBuf>,
     format: &ReportFormat,
     output: &Option<PathBuf>,
     filter: &FilterArgs,
 ) -> anyhow::Result<()> {
     let config = config::load_config()?;
-    let incomes = read_incomes(input, filter)?;
+    let incomes = read_incomes(income_repo, input, filter).await?;
     let report = QuarterlyReport::build_report(incomes, config.tax());
     let writer = writer(output)?;
     match format {
@@ -103,13 +107,14 @@ fn generate_incomes_report(
     Ok(())
 }
 
-fn generate_taxer_report(
+async fn generate_taxer_report(
+    income_repo: &mut impl IncomeRepository,
     input: &Option<PathBuf>,
     output: &Option<PathBuf>,
     filter: &FilterArgs,
 ) -> anyhow::Result<()> {
     let config = config::load_config()?;
-    let incomes = read_incomes(input, filter)?;
+    let incomes = read_incomes(income_repo, input, filter).await?;
     let writer = writer(output)?;
     taxer::export_csv(incomes, config.taxer(), writer)?;
     Ok(())
@@ -120,7 +125,7 @@ async fn import_incomes(
     statement: &PathBuf,
     filter: &FilterArgs,
 ) -> anyhow::Result<()> {
-    let incomes = read_incomes(&Some(statement.clone()), filter)?;
+    let incomes = read_incomes(income_repo, &Some(statement.clone()), filter).await?;
     let imported = income_repo
         .save_all(&incomes.into_iter().collect::<Vec<_>>())
         .await?;
@@ -136,16 +141,17 @@ fn writer(output: &Option<PathBuf>) -> anyhow::Result<Box<dyn Write>> {
     Ok(writer)
 }
 
-fn read_incomes(
+async fn read_incomes(
+    income_repo: &mut impl IncomeRepository,
     input: &Option<PathBuf>,
     filter: &FilterArgs,
 ) -> anyhow::Result<impl IntoIterator<Item = Income>> {
     let incomes = match input {
-        Some(stmt) => {
+        Some(stmt) => block_in_place(move || {
             let file = File::open(stmt).context("opening input file")?;
-            universalbank::read_incomes(file, filter.criteria())?
-        }
-        None => db::find_by_criteria(filter.criteria())?,
+            universalbank::read_incomes(file, filter.criteria())
+        })?,
+        None => income_repo.find_all().await?,
     };
     Ok(incomes)
 }
