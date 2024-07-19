@@ -1,8 +1,10 @@
+use r2d2::Pool;
+use r2d2_sqlite::SqliteConnectionManager;
 use rusqlite::OpenFlags;
 use sqlx::{migrate, Connection, SqliteConnection};
 use uuid::Uuid;
 
-pub async fn connect_to_test_db() -> rusqlite::Connection {
+pub async fn connect_to_test_db() -> Pool<SqliteConnectionManager> {
     let db_name = Uuid::new_v4().to_string();
     let db_file = format!("file:{}", db_name);
     let database_url = format!("{}?mode=memory&cache=shared", &db_file);
@@ -15,11 +17,22 @@ pub async fn connect_to_test_db() -> rusqlite::Connection {
         .await
         .expect("sqlx migration failed");
 
-    rusqlite::Connection::open_with_flags(
-        db_file,
-        OpenFlags::SQLITE_OPEN_READ_WRITE
-            | OpenFlags::SQLITE_OPEN_SHARED_CACHE
-            | OpenFlags::SQLITE_OPEN_MEMORY,
-    )
-    .unwrap()
+    r2d2::Pool::builder()
+        .max_size(1)
+        .build(
+            r2d2_sqlite::SqliteConnectionManager::file(db_file).with_flags(
+                OpenFlags::SQLITE_OPEN_READ_WRITE
+                    | OpenFlags::SQLITE_OPEN_SHARED_CACHE
+                    | OpenFlags::SQLITE_OPEN_MEMORY,
+            ),
+        )
+        .unwrap()
+
+    // rusqlite::Connection::open_with_flags(
+    //     db_file,
+    //     OpenFlags::SQLITE_OPEN_READ_WRITE
+    //         | OpenFlags::SQLITE_OPEN_SHARED_CACHE
+    //         | OpenFlags::SQLITE_OPEN_MEMORY,
+    // )
+    // .unwrap()
 }

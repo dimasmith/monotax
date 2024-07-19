@@ -1,6 +1,6 @@
 use std::fs::File;
 use std::io::{prelude::*, stdout, BufWriter};
-use std::path::PathBuf;
+use std::path::Path;
 
 use anyhow::Context;
 
@@ -44,7 +44,13 @@ async fn main() -> anyhow::Result<()> {
             filter,
         } => {
             let mut income_repo = create_income_repo()?;
-            generate_taxer_report(&mut income_repo, input, output, filter).await?;
+            generate_taxer_report(
+                &mut income_repo,
+                input.as_deref(),
+                output.as_deref(),
+                filter,
+            )
+            .await?;
         }
         Command::Report {
             input,
@@ -53,11 +59,18 @@ async fn main() -> anyhow::Result<()> {
             filter,
         } => {
             let mut income_repo = create_income_repo()?;
-            generate_incomes_report(&mut income_repo, input, format, output, filter).await?;
+            generate_incomes_report(
+                &mut income_repo,
+                input.as_deref(),
+                format,
+                output.as_deref(),
+                filter,
+            )
+            .await?;
         }
         Command::Payments { command } => match command {
             PaymentCommands::Report { output, filter } => {
-                report_payments(output, filter)?;
+                report_payments(output.as_deref(), filter)?;
             }
             PaymentCommands::Pay { payment_no } => {
                 pay_tax(payment_no)?;
@@ -81,7 +94,7 @@ fn pay_tax(payment_no: &i64) -> anyhow::Result<()> {
     Ok(())
 }
 
-fn report_payments(output: &Option<PathBuf>, filter: &FilterArgs) -> anyhow::Result<()> {
+fn report_payments(output: Option<&Path>, filter: &FilterArgs) -> anyhow::Result<()> {
     let payments = find_payments_by_criteria(filter.criteria())?;
     let report = PaymentReport::from_payments(payments);
     let writer = writer(output)?;
@@ -91,9 +104,9 @@ fn report_payments(output: &Option<PathBuf>, filter: &FilterArgs) -> anyhow::Res
 
 async fn generate_incomes_report(
     income_repo: &mut impl IncomeRepository,
-    input: &Option<PathBuf>,
+    input: Option<&Path>,
     format: &ReportFormat,
-    output: &Option<PathBuf>,
+    output: Option<&Path>,
     filter: &FilterArgs,
 ) -> anyhow::Result<()> {
     let config = config::load_config()?;
@@ -109,8 +122,8 @@ async fn generate_incomes_report(
 
 async fn generate_taxer_report(
     income_repo: &mut impl IncomeRepository,
-    input: &Option<PathBuf>,
-    output: &Option<PathBuf>,
+    input: Option<&Path>,
+    output: Option<&Path>,
     filter: &FilterArgs,
 ) -> anyhow::Result<()> {
     let config = config::load_config()?;
@@ -122,10 +135,10 @@ async fn generate_taxer_report(
 
 async fn import_incomes(
     income_repo: &mut impl IncomeRepository,
-    statement: &PathBuf,
+    statement: &Path,
     filter: &FilterArgs,
 ) -> anyhow::Result<()> {
-    let incomes = read_incomes(income_repo, &Some(statement.clone()), filter).await?;
+    let incomes = read_incomes(income_repo, Some(statement), filter).await?;
     let imported = income_repo
         .save_all(&incomes.into_iter().collect::<Vec<_>>())
         .await?;
@@ -133,7 +146,7 @@ async fn import_incomes(
     Ok(())
 }
 
-fn writer(output: &Option<PathBuf>) -> anyhow::Result<Box<dyn Write>> {
+fn writer(output: Option<&Path>) -> anyhow::Result<Box<dyn Write>> {
     let writer: Box<dyn Write> = match output {
         Some(path) => Box::new(BufWriter::new(File::create(path)?)),
         None => Box::new(BufWriter::new(stdout())),
@@ -143,7 +156,7 @@ fn writer(output: &Option<PathBuf>) -> anyhow::Result<Box<dyn Write>> {
 
 async fn read_incomes(
     income_repo: &mut impl IncomeRepository,
-    input: &Option<PathBuf>,
+    input: Option<&Path>,
     filter: &FilterArgs,
 ) -> anyhow::Result<impl IntoIterator<Item = Income>> {
     let incomes = match input {
