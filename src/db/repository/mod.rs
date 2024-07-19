@@ -3,6 +3,7 @@ use rusqlite::{named_params, Connection, Row, ToSql};
 
 use super::criteria::SqlCriteria;
 use crate::domain::income::Income;
+use crate::income::criteria::IncomeCriteria;
 use crate::time::Quarter;
 
 pub fn save_tax_paid(conn: &Connection, payment_no: i64, tax_paid: bool) -> anyhow::Result<()> {
@@ -19,7 +20,7 @@ pub fn save_tax_paid(conn: &Connection, payment_no: i64, tax_paid: bool) -> anyh
 
 pub(super) fn find_records_by(
     conn: &mut Connection,
-    criteria: impl SqlCriteria,
+    criteria: &IncomeCriteria,
 ) -> anyhow::Result<Vec<IncomeRecord>> {
     let where_clause = if criteria.where_clause().is_empty() {
         String::default()
