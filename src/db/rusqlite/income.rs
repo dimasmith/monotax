@@ -4,37 +4,53 @@ use crate::income::criteria::IncomeCriteria;
 use crate::time::Quarter;
 use async_trait::async_trait;
 use chrono::{Datelike, NaiveDateTime};
+use r2d2::Pool;
+use r2d2_sqlite::SqliteConnectionManager;
 use rusqlite::{named_params, Connection, Row, ToSql};
+use tokio::task;
 
 pub struct RusqliteIncomeRepository {
-    conn: Connection,
+    pool: Pool<SqliteConnectionManager>,
 }
 
 impl RusqliteIncomeRepository {
-    pub fn new(conn: Connection) -> Self {
-        Self { conn }
+    pub fn new(pool: Pool<SqliteConnectionManager>) -> Self {
+        Self { pool }
     }
 }
 
 #[async_trait]
 impl IncomeRepository for RusqliteIncomeRepository {
     async fn save_all(&mut self, incomes: &[Income]) -> anyhow::Result<usize> {
-        let conn = &mut self.conn;
-        save_incomes(conn, incomes)
+        let pool = self.pool.clone();
+        let incomes = incomes.to_vec();
+        task::spawn_blocking(move || {
+            let mut conn = pool.get().unwrap();
+            save_incomes(&mut conn, incomes)
+        })
+        .await?
     }
 
     async fn find_all(&mut self) -> anyhow::Result<Vec<Income>> {
-        let conn = &mut self.conn;
-        load_all_incomes(conn)
+        let pool = self.pool.clone();
+        task::spawn_blocking(move || {
+            let mut conn = pool.get().unwrap();
+            load_all_incomes(&mut conn)
+        })
+        .await?
     }
 
     async fn find_by(&mut self, criteria: IncomeCriteria) -> anyhow::Result<Vec<Income>> {
-        let conn = &mut self.conn;
-        find_incomes(conn, criteria)
+        let pool = self.pool.clone();
+        task::spawn_blocking(move || {
+            let mut conn = pool.get().unwrap();
+            find_incomes(&mut conn, criteria)
+        })
+        .await?
     }
 }
 
-fn save_incomes(conn: &mut Connection, incomes: &[Income]) -> anyhow::Result<usize> {
+fn save_incomes(conn: &mut Connection, incomes: Vec<Income>) -> anyhow::Result<usize> {
     let income_records = incomes.iter().map(IncomeRecord::from);
 
     let mut updated = 0;
@@ -150,14 +166,6 @@ impl IncomeRecord {
             quarter,
             tax_paid,
         }
-    }
-
-    pub(super) fn tax_paid(&self) -> bool {
-        self.tax_paid
-    }
-
-    pub(super) fn income(&self) -> Income {
-        Income::new(self.date, self.amount).with_no(self.payment_no)
     }
 
     fn into_income(self) -> Income {

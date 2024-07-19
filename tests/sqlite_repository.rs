@@ -17,8 +17,8 @@ fn income(datetime: &str, amount: f64) -> Income {
 }
 
 async fn create_repository() -> RusqliteIncomeRepository {
-    let conn = connect_to_test_db().await;
-    RusqliteIncomeRepository::new(conn)
+    let pool = connect_to_test_db().await;
+    RusqliteIncomeRepository::new(pool)
 }
 
 #[tokio::test]
