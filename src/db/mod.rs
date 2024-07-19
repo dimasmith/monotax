@@ -4,7 +4,6 @@
 
 use async_trait::async_trait;
 
-use self::criteria::SqlCriteria;
 use self::rusqlite::connect::connect;
 use crate::config::load_config;
 use crate::domain::income::Income;
@@ -27,7 +26,7 @@ pub trait IncomeRepository {
     async fn find_by(&mut self, criteria: IncomeCriteria) -> anyhow::Result<Vec<Income>>;
 }
 
-pub fn find_payments_by_criteria(criteria: impl SqlCriteria) -> anyhow::Result<Vec<Payment>> {
+pub async fn find_payments_by_criteria(criteria: &IncomeCriteria) -> anyhow::Result<Vec<Payment>> {
     let config = load_config()?;
     let tax_rate = config.tax().tax_rate();
     let mut conn = connect()?;
@@ -44,12 +43,12 @@ pub fn find_payments_by_criteria(criteria: impl SqlCriteria) -> anyhow::Result<V
     Ok(payments)
 }
 
-pub fn mark_paid(payment_no: i64) -> anyhow::Result<()> {
+pub async fn mark_paid(payment_no: i64) -> anyhow::Result<()> {
     let conn = connect()?;
     repository::save_tax_paid(&conn, payment_no, true)
 }
 
-pub fn mark_unpaid(payment_no: i64) -> anyhow::Result<()> {
+pub async fn mark_unpaid(payment_no: i64) -> anyhow::Result<()> {
     let conn = connect()?;
     repository::save_tax_paid(&conn, payment_no, false)
 }

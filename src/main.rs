@@ -70,13 +70,13 @@ async fn main() -> anyhow::Result<()> {
         }
         Command::Payments { command } => match command {
             PaymentCommands::Report { output, filter } => {
-                report_payments(output.as_deref(), filter)?;
+                report_payments(output.as_deref(), filter).await?;
             }
             PaymentCommands::Pay { payment_no } => {
-                pay_tax(payment_no)?;
+                pay_tax(payment_no).await?;
             }
             PaymentCommands::Unpay { payment_no } => {
-                cancel_tax_payment(payment_no)?;
+                cancel_tax_payment(payment_no).await?;
             }
         },
     }
@@ -84,18 +84,19 @@ async fn main() -> anyhow::Result<()> {
     Ok(())
 }
 
-fn cancel_tax_payment(payment_no: &i64) -> anyhow::Result<()> {
-    mark_unpaid(*payment_no)?;
+async fn cancel_tax_payment(payment_no: &i64) -> anyhow::Result<()> {
+    mark_unpaid(*payment_no).await?;
     Ok(())
 }
 
-fn pay_tax(payment_no: &i64) -> anyhow::Result<()> {
-    mark_paid(*payment_no)?;
+async fn pay_tax(payment_no: &i64) -> anyhow::Result<()> {
+    mark_paid(*payment_no).await?;
     Ok(())
 }
 
-fn report_payments(output: Option<&Path>, filter: &FilterArgs) -> anyhow::Result<()> {
-    let payments = find_payments_by_criteria(filter.criteria())?;
+async fn report_payments(output: Option<&Path>, filter: &FilterArgs) -> anyhow::Result<()> {
+    let criteria = filter.criteria();
+    let payments = find_payments_by_criteria(&criteria).await?;
     let report = PaymentReport::from_payments(payments);
     let writer = writer(output)?;
     plaintext_report(&report, writer)?;
@@ -146,14 +147,6 @@ async fn import_incomes(
     Ok(())
 }
 
-fn writer(output: Option<&Path>) -> anyhow::Result<Box<dyn Write>> {
-    let writer: Box<dyn Write> = match output {
-        Some(path) => Box::new(BufWriter::new(File::create(path)?)),
-        None => Box::new(BufWriter::new(stdout())),
-    };
-    Ok(writer)
-}
-
 async fn read_incomes(
     income_repo: &mut impl IncomeRepository,
     input: Option<&Path>,
@@ -167,4 +160,12 @@ async fn read_incomes(
         None => income_repo.find_all().await?,
     };
     Ok(incomes)
+}
+
+fn writer(output: Option<&Path>) -> anyhow::Result<Box<dyn Write>> {
+    let writer: Box<dyn Write> = match output {
+        Some(path) => Box::new(BufWriter::new(File::create(path)?)),
+        None => Box::new(BufWriter::new(stdout())),
+    };
+    Ok(writer)
 }
