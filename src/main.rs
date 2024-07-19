@@ -10,8 +10,8 @@ use cli::payment::PaymentCommands;
 use cli::ReportFormat;
 use cli::{Cli, Command};
 use env_logger::{Builder, Env};
-use monotax::db::rusqlite::create_income_repo;
-use monotax::db::{find_payments_by_criteria, mark_paid, mark_unpaid, IncomeRepository};
+use monotax::db::rusqlite::{create_income_repo, create_payment_repo};
+use monotax::db::{IncomeRepository, PaymentRepository};
 use monotax::domain::income::Income;
 use monotax::payment::report::plaintext::plaintext_report;
 use monotax::payment::report::PaymentReport;
@@ -70,13 +70,16 @@ async fn main() -> anyhow::Result<()> {
         }
         Command::Payments { command } => match command {
             PaymentCommands::Report { output, filter } => {
-                report_payments(output.as_deref(), filter).await?;
+                let mut payment_repo = create_payment_repo()?;
+                report_payments(&mut payment_repo, output.as_deref(), filter).await?;
             }
             PaymentCommands::Pay { payment_no } => {
-                pay_tax(payment_no).await?;
+                let mut payment_repo = create_payment_repo()?;
+                pay_tax(&mut payment_repo, payment_no).await?;
             }
             PaymentCommands::Unpay { payment_no } => {
-                cancel_tax_payment(payment_no).await?;
+                let mut payment_repo = create_payment_repo()?;
+                cancel_tax_payment(&mut payment_repo, payment_no).await?;
             }
         },
     }
@@ -84,19 +87,29 @@ async fn main() -> anyhow::Result<()> {
     Ok(())
 }
 
-async fn cancel_tax_payment(payment_no: &i64) -> anyhow::Result<()> {
-    mark_unpaid(*payment_no).await?;
+async fn cancel_tax_payment(
+    payments_repo: &mut impl PaymentRepository,
+    payment_no: &i64,
+) -> anyhow::Result<()> {
+    payments_repo.mark_unpaid(*payment_no).await?;
     Ok(())
 }
 
-async fn pay_tax(payment_no: &i64) -> anyhow::Result<()> {
-    mark_paid(*payment_no).await?;
+async fn pay_tax(
+    payments_repo: &mut impl PaymentRepository,
+    payment_no: &i64,
+) -> anyhow::Result<()> {
+    payments_repo.mark_paid(*payment_no).await?;
     Ok(())
 }
 
-async fn report_payments(output: Option<&Path>, filter: &FilterArgs) -> anyhow::Result<()> {
+async fn report_payments(
+    payments_repo: &mut impl PaymentRepository,
+    output: Option<&Path>,
+    filter: &FilterArgs,
+) -> anyhow::Result<()> {
     let criteria = filter.criteria();
-    let payments = find_payments_by_criteria(&criteria).await?;
+    let payments = payments_repo.find_by(criteria).await?;
     let report = PaymentReport::from_payments(payments);
     let writer = writer(output)?;
     plaintext_report(&report, writer)?;

@@ -4,8 +4,6 @@
 
 use async_trait::async_trait;
 
-use self::rusqlite::connect::connect;
-use crate::config::load_config;
 use crate::domain::income::Income;
 use crate::domain::payment::Payment;
 use crate::income::criteria::IncomeCriteria;
@@ -14,7 +12,6 @@ pub mod config;
 mod criteria;
 mod date;
 pub mod init;
-pub mod repository;
 pub mod rusqlite;
 
 #[async_trait]
@@ -26,29 +23,11 @@ pub trait IncomeRepository {
     async fn find_by(&mut self, criteria: IncomeCriteria) -> anyhow::Result<Vec<Income>>;
 }
 
-pub async fn find_payments_by_criteria(criteria: &IncomeCriteria) -> anyhow::Result<Vec<Payment>> {
-    let config = load_config()?;
-    let tax_rate = config.tax().tax_rate();
-    let mut conn = connect()?;
-    let records = repository::find_records_by(&mut conn, criteria)?;
+#[async_trait]
+pub trait PaymentRepository {
+    async fn find_by(&mut self, criteria: IncomeCriteria) -> anyhow::Result<Vec<Payment>>;
 
-    let payments = records
-        .into_iter()
-        .map(|r| {
-            let paid = r.tax_paid();
-            let income = r.income();
-            Payment::tax_rate(income, tax_rate, paid)
-        })
-        .collect();
-    Ok(payments)
-}
+    async fn mark_paid(&mut self, payment_no: i64) -> anyhow::Result<()>;
 
-pub async fn mark_paid(payment_no: i64) -> anyhow::Result<()> {
-    let conn = connect()?;
-    repository::save_tax_paid(&conn, payment_no, true)
-}
-
-pub async fn mark_unpaid(payment_no: i64) -> anyhow::Result<()> {
-    let conn = connect()?;
-    repository::save_tax_paid(&conn, payment_no, false)
+    async fn mark_unpaid(&mut self, payment_no: i64) -> anyhow::Result<()>;
 }
