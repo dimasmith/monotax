@@ -25,6 +25,8 @@ toml = "0.8.12"
 dotenvy = "0.15.7"
 uuid = { version = "1.9.1", features = ["v4"] }
 async-trait = "0.1.81"
+r2d2 = "0.8.10"
+r2d2_sqlite = "0.23.0"
 
 # todo: remove depenency once the migration to sqlx is complete
 [dependencies.rusqlite]
