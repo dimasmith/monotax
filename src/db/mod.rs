@@ -9,8 +9,6 @@ use crate::domain::payment::Payment;
 use crate::income::criteria::IncomeCriteria;
 
 pub mod config;
-mod criteria;
-mod date;
 pub mod init;
 pub mod rusqlite;
 

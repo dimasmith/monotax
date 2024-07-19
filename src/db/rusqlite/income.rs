@@ -1,4 +1,4 @@
-use crate::db::{criteria::SqlCriteria, IncomeRepository};
+use crate::db::IncomeRepository;
 use crate::domain::income::Income;
 use crate::income::criteria::IncomeCriteria;
 use crate::time::Quarter;
@@ -8,6 +8,8 @@ use r2d2::Pool;
 use r2d2_sqlite::SqliteConnectionManager;
 use rusqlite::{named_params, Connection, Row, ToSql};
 use tokio::task;
+
+use super::criteria::SqlCriteria;
 
 pub struct RusqliteIncomeRepository {
     pool: Pool<SqliteConnectionManager>,
