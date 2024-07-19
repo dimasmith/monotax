@@ -4,6 +4,8 @@ use payment::RusqlitePaymentRepository;
 use crate::{config::load_config, db::rusqlite::income::RusqliteIncomeRepository};
 
 pub mod connect;
+mod criteria;
+mod date;
 pub mod income;
 pub mod payment;
 

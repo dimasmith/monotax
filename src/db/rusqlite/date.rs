@@ -2,10 +2,8 @@
 
 use chrono::Datelike;
 
-use crate::{
-    income::criteria::{IncomeCriterion, QuarterFilter, YearFilter},
-    time::Quarter,
-};
+use crate::income::criteria::{IncomeCriterion, QuarterFilter, YearFilter};
+use crate::time::Quarter;
 
 use super::criteria::SqlCriterion;
 

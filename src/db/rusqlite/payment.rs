@@ -7,11 +7,13 @@ use tokio::task;
 
 use crate::{
     config::Config,
-    db::{criteria::SqlCriteria, PaymentRepository},
+    db::PaymentRepository,
     domain::{income::Income, payment::Payment},
     income::criteria::IncomeCriteria,
     time::Quarter,
 };
+
+use super::criteria::SqlCriteria;
 
 pub struct RusqlitePaymentRepository {
     pool: Pool<SqliteConnectionManager>,
