@@ -1,5 +1,5 @@
 use async_trait::async_trait;
-use sqlx::{pool, SqlitePool};
+use sqlx::SqlitePool;
 
 use super::record::IncomeRecord;
 use crate::db::IncomeRepository;
@@ -19,7 +19,35 @@ impl SqlxIncomeRepository {
 #[async_trait]
 impl IncomeRepository for SqlxIncomeRepository {
     async fn save_all(&mut self, incomes: &[Income]) -> anyhow::Result<usize> {
-        todo!()
+        let income_records = incomes.iter().map(IncomeRecord::from);
+        let mut updated = 0;
+        let mut tx = self.pool.begin().await?;
+        let max_payment_no: i64 = sqlx::query_scalar!(r#"SELECT MAX(payment_no) FROM income"#)
+            .fetch_one(&mut *tx)
+            .await
+            .expect("failed to fetch max payment no")
+            .unwrap_or_default();
+        for record in income_records {
+            let payment_no = max_payment_no + updated as i64 + 1;
+            sqlx::query!(
+                r#"
+                INSERT OR IGNORE INTO income (date, amount, payment_no, description, year, quarter, tax_paid)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+                "#,
+                record.date,
+                record.amount,
+                payment_no,
+                record.description,
+                record.year,
+                record.quarter,
+                record.tax_paid
+            )
+            .execute(&mut *tx)
+            .await?;
+            updated += 1;
+        }
+        tx.commit().await?;
+        Ok(updated)
     }
 
     async fn find_all(&mut self) -> anyhow::Result<Vec<Income>> {
