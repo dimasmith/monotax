@@ -1,5 +1,5 @@
 use async_trait::async_trait;
-use sqlx::{QueryBuilder, Sqlite, SqlitePool};
+use sqlx::{query, Execute, QueryBuilder, Sqlite, SqlitePool};
 
 use super::criteria::SqlxCriterion;
 use super::record::IncomeRecord;
@@ -30,7 +30,7 @@ impl IncomeRepository for SqlxIncomeRepository {
             .unwrap_or_default();
         for record in income_records {
             let payment_no = max_payment_no + updated as i64 + 1;
-            sqlx::query!(
+            let result = sqlx::query!(
                 r#"
                 INSERT OR IGNORE INTO income (date, amount, payment_no, description, year, quarter, tax_paid)
                 VALUES (?, ?, ?, ?, ?, ?, ?)
@@ -45,7 +45,7 @@ impl IncomeRepository for SqlxIncomeRepository {
             )
             .execute(&mut *tx)
             .await?;
-            updated += 1;
+            updated += result.rows_affected() as usize;
         }
         tx.commit().await?;
         Ok(updated)
@@ -71,7 +71,7 @@ impl IncomeRepository for SqlxIncomeRepository {
 
         let mut query_builder: QueryBuilder<Sqlite> = QueryBuilder::new(
             r#"
-            SELECT date, amount, payment_no, description, year as "year: u16", quarter as "quarter: u8", tax_paid
+            SELECT date, amount, payment_no, description, year, quarter, tax_paid
             FROM income
             "#,
         );
@@ -81,14 +81,14 @@ impl IncomeRepository for SqlxIncomeRepository {
                 match criterion {
                     IncomeCriterion::Quarter(filter) => {
                         if let Some(params) = filter.bind_param() {
-                            query_builder.push("AND ");
+                            query_builder.push(" AND ");
                             query_builder.push(params.0);
                             query_builder.push_bind(params.1);
                         }
                     }
                     IncomeCriterion::Year(filter) => {
                         if let Some(params) = filter.bind_param() {
-                            query_builder.push("AND ");
+                            query_builder.push(" AND ");
                             query_builder.push(params.0);
                             query_builder.push_bind(params.1);
                         }
@@ -98,6 +98,8 @@ impl IncomeRepository for SqlxIncomeRepository {
         }
 
         let query = query_builder.build_query_as();
+        let query_sql = query.sql();
+        dbg!(query_sql);
         let records: Vec<IncomeRecord> = query.fetch_all(pool).await?;
         let incomes = records.into_iter().map(|record| record.into()).collect();
         Ok(incomes)
