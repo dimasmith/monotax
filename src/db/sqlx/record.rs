@@ -1,7 +1,9 @@
 use chrono::{Datelike, NaiveDateTime};
+use sqlx::prelude::FromRow;
 
 use crate::{domain::income::Income, time::Quarter};
 
+#[derive(Debug, Clone, FromRow)]
 pub struct IncomeRecord {
     pub date: NaiveDateTime,
     pub amount: f64,
