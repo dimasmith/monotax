@@ -10,8 +10,7 @@ use cli::payment::PaymentCommands;
 use cli::ReportFormat;
 use cli::{Cli, Command};
 use env_logger::{Builder, Env};
-use monotax::db::rusqlite::create_payment_repo;
-use monotax::db::sqlx::default_income_repository;
+use monotax::db::sqlx::{default_income_repository, default_payment_repository};
 use monotax::db::{IncomeRepository, PaymentRepository};
 use monotax::domain::income::Income;
 use monotax::payment::report::plaintext::plaintext_report;
@@ -71,15 +70,15 @@ async fn main() -> anyhow::Result<()> {
         }
         Command::Payments { command } => match command {
             PaymentCommands::Report { output, filter } => {
-                let mut payment_repo = create_payment_repo()?;
+                let mut payment_repo = default_payment_repository().await;
                 report_payments(&mut payment_repo, output.as_deref(), filter).await?;
             }
             PaymentCommands::Pay { payment_no } => {
-                let mut payment_repo = create_payment_repo()?;
+                let mut payment_repo = default_payment_repository().await;
                 pay_tax(&mut payment_repo, payment_no).await?;
             }
             PaymentCommands::Unpay { payment_no } => {
-                let mut payment_repo = create_payment_repo()?;
+                let mut payment_repo = default_payment_repository().await;
                 cancel_tax_payment(&mut payment_repo, payment_no).await?;
             }
         },
