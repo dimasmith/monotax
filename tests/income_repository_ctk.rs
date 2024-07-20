@@ -1,6 +1,4 @@
-use crate::common::connect_to_test_db;
 use chrono::NaiveDateTime;
-use monotax::db::rusqlite::income::RusqliteIncomeRepository;
 use monotax::db::IncomeRepository;
 use monotax::domain::income::Income;
 use monotax::income::criteria::IncomeCriteria;
@@ -9,22 +7,12 @@ use monotax::income::criteria::QuarterFilter;
 use monotax::income::criteria::YearFilter;
 use monotax::time::Quarter;
 
-mod common;
-
 fn income(datetime: &str, amount: f64) -> Income {
     let datetime = NaiveDateTime::parse_from_str(datetime, "%Y-%m-%d %H:%M:%S").unwrap();
     Income::new(datetime, amount)
 }
 
-async fn create_repository() -> RusqliteIncomeRepository {
-    let pool = connect_to_test_db().await;
-    RusqliteIncomeRepository::new(pool)
-}
-
-#[tokio::test]
-async fn save_and_load_incomes() {
-    let mut repo = create_repository().await;
-
+pub async fn test_save_and_load_incomes(repo: &mut impl IncomeRepository) {
     let income1 = income("2024-04-13 14:00:00", 225.0);
     let income2 = income("2024-07-13 14:00:00", 325.0);
     let incomes = vec![income1.clone(), income2.clone()];
@@ -39,10 +27,7 @@ async fn save_and_load_incomes() {
     assert_eq!(incomes[1], income2);
 }
 
-#[tokio::test]
-async fn ignore_duplicate_incomes() {
-    let mut repo = create_repository().await;
-
+pub async fn test_ignore_duplicate_incomes(repo: &mut impl IncomeRepository) {
     let income1 = income("2024-04-13 14:00:00", 225.0);
     let income2 = income("2024-07-13 14:00:00", 325.0);
     let income2_dup = income2.clone();
@@ -61,10 +46,7 @@ async fn ignore_duplicate_incomes() {
     assert_eq!(incomes[1], income2);
 }
 
-#[tokio::test]
-async fn filter_incomes_on_quarters() {
-    let mut repo = create_repository().await;
-
+pub async fn test_filter_incomes_on_quarters(repo: &mut impl IncomeRepository) {
     let q1_2024 = income("2024-01-13 14:00:00", 125.0);
     let q2_2024 = income("2024-04-13 14:00:00", 225.0);
     let q3_2024 = income("2024-07-13 14:00:00", 325.0);
@@ -108,10 +90,7 @@ async fn filter_incomes_on_quarters() {
     );
 }
 
-#[tokio::test]
-async fn filter_incomes_on_years() {
-    let mut repo = create_repository().await;
-
+pub async fn test_filter_incomes_on_years(repo: &mut impl IncomeRepository) {
     let y2023 = income("2023-01-13 14:00:00", 125.0);
     let y2024 = income("2024-01-13 14:00:00", 225.0);
     let y2025 = income("2025-01-13 14:00:00", 325.0);
@@ -137,10 +116,7 @@ async fn filter_incomes_on_years() {
     );
 }
 
-#[tokio::test]
-async fn filter_incomes_on_quarters_and_years() {
-    let mut repo = create_repository().await;
-
+pub async fn test_filter_incomes_on_quarters_and_years(repo: &mut impl IncomeRepository) {
     let q1_2023 = income("2023-01-13 14:00:00", 125.0);
     let q2_2023 = income("2023-04-13 14:00:00", 225.0);
     let q3_2023 = income("2023-07-13 14:00:00", 325.0);

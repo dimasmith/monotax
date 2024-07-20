@@ -1,7 +1,7 @@
 use r2d2::Pool;
 use r2d2_sqlite::SqliteConnectionManager;
 use rusqlite::OpenFlags;
-use sqlx::{migrate, Connection, SqliteConnection};
+use sqlx::{migrate, pool, Connection, SqliteConnection, SqlitePool};
 use uuid::Uuid;
 
 pub async fn connect_to_test_db() -> Pool<SqliteConnectionManager> {
@@ -35,4 +35,20 @@ pub async fn connect_to_test_db() -> Pool<SqliteConnectionManager> {
     //         | OpenFlags::SQLITE_OPEN_MEMORY,
     // )
     // .unwrap()
+}
+
+pub async fn connect_to_test_db_sqlx() -> SqlitePool {
+    let db_name = Uuid::new_v4().to_string();
+    let db_file = format!("file:{}", db_name);
+    let database_url = format!("{}?mode=memory&cache=shared", &db_file);
+    let pool = SqlitePool::connect(&database_url)
+        .await
+        .expect("sqlx connection failed");
+
+    migrate!("./migrations")
+        .run(&pool)
+        .await
+        .expect("sqlx migration failed");
+
+    pool
 }
