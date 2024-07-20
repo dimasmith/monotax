@@ -10,7 +10,6 @@ use crate::income::criteria::IncomeCriteria;
 
 pub mod config;
 pub mod init;
-pub mod rusqlite;
 pub mod sqlx;
 
 #[async_trait]

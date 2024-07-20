@@ -1,11 +1,11 @@
-use common::connect_to_test_db_sqlx;
+use common::connect_to_test_db;
 use monotax::db::{sqlx::income_repository, IncomeRepository};
 
 mod common;
 mod income_repository_ctk;
 
 async fn create_repository() -> impl IncomeRepository {
-    let pool = connect_to_test_db_sqlx().await;
+    let pool = connect_to_test_db().await;
     income_repository(pool).await
 }
 
