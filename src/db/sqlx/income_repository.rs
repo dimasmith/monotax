@@ -1,5 +1,5 @@
 use async_trait::async_trait;
-use sqlx::{query, Execute, QueryBuilder, Sqlite, SqlitePool};
+use sqlx::{Execute, QueryBuilder, Sqlite, SqlitePool};
 
 use super::criteria::SqlxCriterion;
 use super::record::IncomeRecord;
