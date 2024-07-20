@@ -10,7 +10,8 @@ use cli::payment::PaymentCommands;
 use cli::ReportFormat;
 use cli::{Cli, Command};
 use env_logger::{Builder, Env};
-use monotax::db::rusqlite::{create_income_repo, create_payment_repo};
+use monotax::db::rusqlite::create_payment_repo;
+use monotax::db::sqlx::default_income_repository;
 use monotax::db::{IncomeRepository, PaymentRepository};
 use monotax::domain::income::Income;
 use monotax::payment::report::plaintext::plaintext_report;
@@ -34,7 +35,7 @@ async fn main() -> anyhow::Result<()> {
     match &cli.command {
         Command::Init { force } => init::init(*force).await?,
         Command::Import { statement, filter } => {
-            let mut income_repo = create_income_repo()?;
+            let mut income_repo = default_income_repository().await;
             import_incomes(&mut income_repo, statement, filter).await?;
         }
 
@@ -43,7 +44,7 @@ async fn main() -> anyhow::Result<()> {
             output,
             filter,
         } => {
-            let mut income_repo = create_income_repo()?;
+            let mut income_repo = default_income_repository().await;
             generate_taxer_report(
                 &mut income_repo,
                 input.as_deref(),
@@ -58,7 +59,7 @@ async fn main() -> anyhow::Result<()> {
             output,
             filter,
         } => {
-            let mut income_repo = create_income_repo()?;
+            let mut income_repo = default_income_repository().await;
             generate_incomes_report(
                 &mut income_repo,
                 input.as_deref(),
