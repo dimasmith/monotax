@@ -1,10 +1,11 @@
 use async_trait::async_trait;
-use sqlx::SqlitePool;
+use sqlx::{QueryBuilder, Sqlite, SqlitePool};
 
+use super::criteria::SqlxCriterion;
 use super::record::IncomeRecord;
 use crate::db::IncomeRepository;
 use crate::domain::income::Income;
-use crate::income::criteria::IncomeCriteria;
+use crate::income::criteria::{IncomeCriteria, IncomeCriterion};
 
 pub struct SqlxIncomeRepository {
     pool: SqlitePool,
@@ -66,6 +67,39 @@ impl IncomeRepository for SqlxIncomeRepository {
     }
 
     async fn find_by(&mut self, criteria: IncomeCriteria) -> anyhow::Result<Vec<Income>> {
-        todo!()
+        let pool = &self.pool;
+
+        let mut query_builder: QueryBuilder<Sqlite> = QueryBuilder::new(
+            r#"
+            SELECT date, amount, payment_no, description, year as "year: u16", quarter as "quarter: u8", tax_paid
+            FROM income
+            "#,
+        );
+        if !criteria.is_empty() {
+            query_builder.push("WHERE 1=1 ");
+            for criterion in criteria.criteria().iter() {
+                match criterion {
+                    IncomeCriterion::Quarter(filter) => {
+                        if let Some(params) = filter.bind_param() {
+                            query_builder.push("AND ");
+                            query_builder.push(params.0);
+                            query_builder.push_bind(params.1);
+                        }
+                    }
+                    IncomeCriterion::Year(filter) => {
+                        if let Some(params) = filter.bind_param() {
+                            query_builder.push("AND ");
+                            query_builder.push(params.0);
+                            query_builder.push_bind(params.1);
+                        }
+                    }
+                }
+            }
+        }
+
+        let query = query_builder.build_query_as();
+        let records: Vec<IncomeRecord> = query.fetch_all(pool).await?;
+        let incomes = records.into_iter().map(|record| record.into()).collect();
+        Ok(incomes)
     }
 }

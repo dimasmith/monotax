@@ -4,6 +4,7 @@ use income_repository::SqlxIncomeRepository;
 use super::IncomeRepository;
 
 mod connection;
+mod criteria;
 mod income_repository;
 mod record;
 

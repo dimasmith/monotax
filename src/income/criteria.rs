@@ -56,6 +56,10 @@ impl IncomeCriteria {
     pub fn criteria(&self) -> &[IncomeCriterion] {
         &self.criteria
     }
+
+    pub fn is_empty(&self) -> bool {
+        self.criteria.is_empty()
+    }
 }
 
 impl From<QuarterFilter> for IncomeCriterion {
