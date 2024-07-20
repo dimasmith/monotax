@@ -1,0 +1,56 @@
+{
+  "db_name": "SQLite",
+  "query": "\n            SELECT date, amount, payment_no, description, year as \"year: u16\", quarter as \"quarter: u8\", tax_paid\n            FROM income\n            ",
+  "describe": {
+    "columns": [
+      {
+        "name": "date",
+        "ordinal": 0,
+        "type_info": "Datetime"
+      },
+      {
+        "name": "amount",
+        "ordinal": 1,
+        "type_info": "Float"
+      },
+      {
+        "name": "payment_no",
+        "ordinal": 2,
+        "type_info": "Int64"
+      },
+      {
+        "name": "description",
+        "ordinal": 3,
+        "type_info": "Text"
+      },
+      {
+        "name": "year: u16",
+        "ordinal": 4,
+        "type_info": "Int64"
+      },
+      {
+        "name": "quarter: u8",
+        "ordinal": 5,
+        "type_info": "Int64"
+      },
+      {
+        "name": "tax_paid",
+        "ordinal": 6,
+        "type_info": "Bool"
+      }
+    ],
+    "parameters": {
+      "Right": 0
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      true,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "0a351ad6bf47f70c69cf0c51f82968347e74c29b0ddd0506347c098969a1c571"
+}

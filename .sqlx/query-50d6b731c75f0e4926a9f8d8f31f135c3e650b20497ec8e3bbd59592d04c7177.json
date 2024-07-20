@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "\n            UPDATE income\n            SET tax_paid = 1\n            WHERE payment_no = ?\n            ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 1
+    },
+    "nullable": []
+  },
+  "hash": "50d6b731c75f0e4926a9f8d8f31f135c3e650b20497ec8e3bbd59592d04c7177"
+}

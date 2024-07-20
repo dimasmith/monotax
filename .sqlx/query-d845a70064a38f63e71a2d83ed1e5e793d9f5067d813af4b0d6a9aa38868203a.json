@@ -1,0 +1,20 @@
+{
+  "db_name": "SQLite",
+  "query": "SELECT MAX(payment_no) FROM income",
+  "describe": {
+    "columns": [
+      {
+        "name": "MAX(payment_no)",
+        "ordinal": 0,
+        "type_info": "Int64"
+      }
+    ],
+    "parameters": {
+      "Right": 0
+    },
+    "nullable": [
+      true
+    ]
+  },
+  "hash": "d845a70064a38f63e71a2d83ed1e5e793d9f5067d813af4b0d6a9aa38868203a"
+}

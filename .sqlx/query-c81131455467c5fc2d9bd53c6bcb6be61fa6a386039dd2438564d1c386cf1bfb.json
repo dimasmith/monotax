@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "\n                INSERT OR IGNORE INTO income (date, amount, payment_no, description, year, quarter, tax_paid)\n                VALUES (?, ?, ?, ?, ?, ?, ?)\n                ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 7
+    },
+    "nullable": []
+  },
+  "hash": "c81131455467c5fc2d9bd53c6bcb6be61fa6a386039dd2438564d1c386cf1bfb"
+}
