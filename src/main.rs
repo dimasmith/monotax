@@ -11,11 +11,10 @@ use cli::ReportFormat;
 use cli::{Cli, Command};
 use env_logger::{Builder, Env};
 use monotax::app::tax::mark_income_paid;
-use monotax::db::sqlx::tax_payment_repository::SqlxTaxPaymentRepository;
-use monotax::db::sqlx::{
-    default_income_repository, default_payment_repository, default_tax_payment_repository,
-};
-use monotax::db::{IncomeRepository, PaymentRepository};
+use monotax::db::sqlx::default_income_repository;
+use monotax::db::sqlx::default_payment_repository;
+use monotax::db::sqlx::default_tax_payment_repository;
+use monotax::db::{IncomeRepository, PaymentRepository, TaxPaymentRepository};
 use monotax::domain::income::Income;
 use monotax::payment::report::plaintext::plaintext_report;
 use monotax::payment::report::PaymentReport;
@@ -110,7 +109,7 @@ async fn cancel_tax_payment(
 async fn pay_tax(
     payments_repo: &mut impl PaymentRepository,
     incomes_repo: &mut impl IncomeRepository,
-    tax_payments_repo: &mut SqlxTaxPaymentRepository,
+    tax_payments_repo: &mut impl TaxPaymentRepository,
     payment_no: i64,
 ) -> anyhow::Result<()> {
     mark_income_paid(payment_no, payments_repo, incomes_repo, tax_payments_repo).await?;

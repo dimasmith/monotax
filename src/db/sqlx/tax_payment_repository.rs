@@ -1,4 +1,6 @@
+use crate::db::TaxPaymentRepository;
 use crate::domain::tax_payment::{NewTaxPayment, TaxPayment, ID};
+use async_trait::async_trait;
 use chrono::{NaiveDate, NaiveDateTime, NaiveTime};
 use sqlx::{FromRow, SqlitePool};
 
@@ -19,8 +21,9 @@ impl SqlxTaxPaymentRepository {
     }
 }
 
-impl SqlxTaxPaymentRepository {
-    pub async fn insert_payment(&mut self, new_payment: NewTaxPayment) -> anyhow::Result<ID> {
+#[async_trait]
+impl TaxPaymentRepository for SqlxTaxPaymentRepository {
+    async fn insert_payment(&mut self, new_payment: NewTaxPayment) -> anyhow::Result<ID> {
         let id = self.generate_id().await?;
         let pool = &self.pool;
 
@@ -42,7 +45,7 @@ impl SqlxTaxPaymentRepository {
         Ok(id)
     }
 
-    pub async fn find_by_year(&mut self, year: i32) -> anyhow::Result<Vec<TaxPayment>> {
+    async fn find_by_year(&mut self, year: i32) -> anyhow::Result<Vec<TaxPayment>> {
         let year_start = NaiveDateTime::new(
             NaiveDate::from_ymd_opt(year, 1, 1).unwrap(),
             NaiveTime::from_hms_nano_opt(0, 0, 0, 0).unwrap(),
@@ -60,7 +63,9 @@ impl SqlxTaxPaymentRepository {
         let payments = records.into_iter().map(TaxPayment::from).collect();
         Ok(payments)
     }
+}
 
+impl SqlxTaxPaymentRepository {
     async fn generate_id(&mut self) -> anyhow::Result<ID> {
         Ok(0)
     }
