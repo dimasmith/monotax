@@ -10,7 +10,11 @@ use cli::payment::PaymentCommands;
 use cli::ReportFormat;
 use cli::{Cli, Command};
 use env_logger::{Builder, Env};
-use monotax::db::sqlx::{default_income_repository, default_payment_repository};
+use monotax::app::tax::mark_income_paid;
+use monotax::db::sqlx::tax_payment_repository::SqlxTaxPaymentRepository;
+use monotax::db::sqlx::{
+    default_income_repository, default_payment_repository, default_tax_payment_repository,
+};
 use monotax::db::{IncomeRepository, PaymentRepository};
 use monotax::domain::income::Income;
 use monotax::payment::report::plaintext::plaintext_report;
@@ -75,7 +79,15 @@ async fn main() -> anyhow::Result<()> {
             }
             PaymentCommands::Pay { payment_no } => {
                 let mut payment_repo = default_payment_repository().await;
-                pay_tax(&mut payment_repo, payment_no).await?;
+                let mut income_repo = default_income_repository().await;
+                let mut tax_payment_repo = default_tax_payment_repository().await;
+                pay_tax(
+                    &mut payment_repo,
+                    &mut income_repo,
+                    &mut tax_payment_repo,
+                    *payment_no,
+                )
+                .await?;
             }
             PaymentCommands::Unpay { payment_no } => {
                 let mut payment_repo = default_payment_repository().await;
@@ -97,9 +109,11 @@ async fn cancel_tax_payment(
 
 async fn pay_tax(
     payments_repo: &mut impl PaymentRepository,
-    payment_no: &i64,
+    incomes_repo: &mut impl IncomeRepository,
+    tax_payments_repo: &mut SqlxTaxPaymentRepository,
+    payment_no: i64,
 ) -> anyhow::Result<()> {
-    payments_repo.mark_paid(*payment_no).await?;
+    mark_income_paid(payment_no, payments_repo, incomes_repo, tax_payments_repo).await?;
     Ok(())
 }
 

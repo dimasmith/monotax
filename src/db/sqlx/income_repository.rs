@@ -1,11 +1,10 @@
-use async_trait::async_trait;
-use sqlx::{Execute, QueryBuilder, Sqlite, SqlitePool};
-
 use super::criteria::SqlxCriterion;
 use super::record::IncomeRecord;
 use crate::db::IncomeRepository;
 use crate::domain::income::Income;
 use crate::income::criteria::{IncomeCriteria, IncomeCriterion};
+use async_trait::async_trait;
+use sqlx::{QueryBuilder, Sqlite, SqlitePool};
 
 pub struct SqlxIncomeRepository {
     pool: SqlitePool,
@@ -43,8 +42,8 @@ impl IncomeRepository for SqlxIncomeRepository {
                 record.quarter,
                 record.tax_paid
             )
-            .execute(&mut *tx)
-            .await?;
+                .execute(&mut *tx)
+                .await?;
             updated += result.rows_affected() as usize;
         }
         tx.commit().await?;
@@ -60,8 +59,8 @@ impl IncomeRepository for SqlxIncomeRepository {
             FROM income
             "#
         )
-        .fetch_all(pool)
-        .await?;
+            .fetch_all(pool)
+            .await?;
         let incomes = records.into_iter().map(|record| record.into()).collect();
         Ok(incomes)
     }
@@ -98,10 +97,27 @@ impl IncomeRepository for SqlxIncomeRepository {
         }
 
         let query = query_builder.build_query_as();
-        let query_sql = query.sql();
-        dbg!(query_sql);
         let records: Vec<IncomeRecord> = query.fetch_all(pool).await?;
         let incomes = records.into_iter().map(|record| record.into()).collect();
         Ok(incomes)
+    }
+
+    async fn find_by_payment_no(&mut self, payment_no: i64) -> anyhow::Result<Option<Income>> {
+        let pool = &self.pool;
+        let record = sqlx::query_as!(
+            IncomeRecord,
+            r#"
+            SELECT date, amount, payment_no, description, year as "year: u16", quarter as "quarter: u8", tax_paid
+            FROM income
+            where payment_no = ?
+            "#,
+            payment_no
+        )
+            .fetch_optional(pool)
+            .await?;
+        if record.is_none() {
+            return Ok(None);
+        }
+        Ok(Some(Income::from(record.unwrap())))
     }
 }

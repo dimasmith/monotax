@@ -3,15 +3,17 @@ use income_repository::SqlxIncomeRepository;
 use payment_repository::SqlxPaymentRepository;
 use sqlx::SqlitePool;
 
-use crate::config::load_config;
-
 use super::{IncomeRepository, PaymentRepository};
+use crate::config::load_config;
+use crate::db::sqlx::tax_payment_repository::SqlxTaxPaymentRepository;
 
 mod connection;
 mod criteria;
 mod income_repository;
 mod payment_repository;
+// TODO: hide behind the trait
 mod record;
+pub mod tax_payment_repository;
 
 pub async fn default_income_repository() -> impl IncomeRepository {
     let pool = default_connection_pool().await.unwrap();
@@ -30,4 +32,13 @@ pub async fn default_payment_repository() -> impl PaymentRepository {
 pub async fn payment_repository(pool: SqlitePool) -> impl PaymentRepository {
     let config = load_config().unwrap();
     SqlxPaymentRepository::new(pool, config)
+}
+
+pub async fn default_tax_payment_repository() -> SqlxTaxPaymentRepository {
+    let pool = default_connection_pool().await.unwrap();
+    payment_tax_repository(pool).await
+}
+
+pub async fn payment_tax_repository(pool: SqlitePool) -> SqlxTaxPaymentRepository {
+    SqlxTaxPaymentRepository::new(pool)
 }
