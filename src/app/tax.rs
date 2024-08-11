@@ -1,5 +1,4 @@
-use crate::db::sqlx::tax_payment_repository::SqlxTaxPaymentRepository;
-use crate::db::{IncomeRepository, PaymentRepository};
+use crate::db::{IncomeRepository, PaymentRepository, TaxPaymentRepository};
 use crate::domain::tax_payment::NewTaxPayment;
 use chrono::Utc;
 
@@ -7,7 +6,7 @@ pub async fn mark_income_paid(
     payment_no: i64,
     payments_repo: &mut impl PaymentRepository,
     incomes_repo: &mut impl IncomeRepository,
-    tax_payment_repo: &mut SqlxTaxPaymentRepository,
+    tax_payment_repo: &mut impl TaxPaymentRepository,
 ) -> anyhow::Result<()> {
     // mark income as paid
     payments_repo.mark_paid(payment_no).await?;
