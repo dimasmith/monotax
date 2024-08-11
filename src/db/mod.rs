@@ -19,6 +19,8 @@ pub trait IncomeRepository {
     async fn find_all(&mut self) -> anyhow::Result<Vec<Income>>;
 
     async fn find_by(&mut self, criteria: IncomeCriteria) -> anyhow::Result<Vec<Income>>;
+
+    async fn find_by_payment_no(&mut self, payment_no: i64) -> anyhow::Result<Option<Income>>;
 }
 
 #[async_trait]
