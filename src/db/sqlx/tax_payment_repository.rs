@@ -67,7 +67,13 @@ impl TaxPaymentRepository for SqlxTaxPaymentRepository {
 
 impl SqlxTaxPaymentRepository {
     async fn generate_id(&mut self) -> anyhow::Result<ID> {
-        Ok(0)
+        let pool = &self.pool;
+        let id = sqlx::query_scalar!(r#"select max(id) from payment"#)
+            .fetch_optional(pool)
+            .await?
+            .unwrap_or_default()
+            .unwrap();
+        Ok(id + 1)
     }
 }
 
