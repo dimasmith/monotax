@@ -63,7 +63,8 @@ impl Reconciliation {
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
+impl PartialEq for Reconciliation {
+    fn eq(&self, other: &Self) -> bool {
+        self.id == other.id
+    }
 }

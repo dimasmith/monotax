@@ -11,32 +11,6 @@ struct ReconcileResult {
     balance: f64,
 }
 
-struct PartialReconciliations {
-    reconciliations: Vec<Reconciliation>,
-}
-
-impl PartialReconciliations {
-    fn new(reconciliations: Vec<Reconciliation>) -> Self {
-        if reconciliations
-            .iter()
-            .any(|r| r.completeness() == Completeness::Full)
-        {
-            panic!("full reconciliation already exists");
-        }
-        Self { reconciliations }
-    }
-
-    fn iter(&self) -> impl Iterator<Item = &Reconciliation> {
-        self.reconciliations.iter()
-    }
-}
-
-impl From<&[Reconciliation]> for PartialReconciliations {
-    fn from(reconciliations: &[Reconciliation]) -> Self {
-        Self::new(reconciliations.to_vec())
-    }
-}
-
 // applies payment to non-reconciled incomes.
 // returns a list of reconciliations created by this operation.
 fn reconcile(
@@ -113,6 +87,39 @@ impl AsRef<[Income]> for PendingIncomes<'_> {
     }
 }
 
+#[derive(Debug, Clone, Default)]
+struct PartialReconciliations<'a> {
+    reconciliations: &'a [Reconciliation],
+}
+
+impl<'a> PartialReconciliations<'a> {
+    fn new(reconciliations: &'a [Reconciliation]) -> Self {
+        assert!(
+            reconciliations
+                .iter()
+                .all(|r| r.completeness() == Completeness::Partial),
+            "must not contain full reconciliations"
+        );
+        assert!(
+            reconciliations
+                .windows(2)
+                .all(|w| w[0].reconciled_on() <= w[1].reconciled_on()),
+            "reconciliations must be sorted by date"
+        );
+        Self { reconciliations }
+    }
+
+    fn iter(&self) -> impl Iterator<Item = &Reconciliation> {
+        self.reconciliations.iter()
+    }
+}
+
+impl AsRef<[Reconciliation]> for PartialReconciliations<'_> {
+    fn as_ref(&self) -> &[Reconciliation] {
+        self.reconciliations
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use chrono::{NaiveDate, Utc};
@@ -131,7 +138,7 @@ mod tests {
 
         let res = reconcile(
             PendingIncomes::new(&[income]),
-            PartialReconciliations::new(vec![]),
+            PartialReconciliations::default(),
             tax_payment,
             tax_rate,
         );
@@ -150,7 +157,7 @@ mod tests {
 
         let res = reconcile(
             PendingIncomes::new(&[income]),
-            PartialReconciliations::new(vec![]),
+            PartialReconciliations::default(),
             tax_payment,
             tax_rate,
         );
@@ -168,7 +175,7 @@ mod tests {
 
         let res = reconcile(
             PendingIncomes::new(&[income]),
-            PartialReconciliations::new(vec![]),
+            PartialReconciliations::default(),
             tax_payment,
             tax_rate,
         );
@@ -193,7 +200,7 @@ mod tests {
 
         let res = reconcile(
             PendingIncomes::new(&[income]),
-            PartialReconciliations::new(vec![partial_reconciliation]),
+            PartialReconciliations::new(&[partial_reconciliation]),
             tax_payment,
             tax_rate,
         );
@@ -213,7 +220,7 @@ mod tests {
 
         let res = reconcile(
             PendingIncomes::new(&[income_1, income_2]),
-            PartialReconciliations::new(vec![]),
+            PartialReconciliations::default(),
             tax_payment,
             tax_rate,
         );
@@ -228,7 +235,10 @@ mod tests {
 
     #[test]
     fn create_pending_incomes_from_incomes_sorted_by_date() {
-        let base_date = NaiveDate::from_yo_opt(2023, 22).unwrap().and_hms(0, 24, 0);
+        let base_date = NaiveDate::from_yo_opt(2023, 22)
+            .unwrap()
+            .and_hms_opt(0, 24, 0)
+            .unwrap();
         let oldest = Income::new(base_date, 1000.0);
         let old = Income::new(base_date + chrono::Duration::days(1), 500.0);
         let new = Income::new(base_date + chrono::Duration::days(10), 800.0);
@@ -251,6 +261,31 @@ mod tests {
         let new = Income::new(base_date + chrono::Duration::days(10), 800.0);
 
         let _ = PendingIncomes::new(&[oldest, new, old]);
+    }
+
+    #[test]
+    #[should_panic]
+    fn pending_reconciliations_cannot_have_complete_entries() {
+        let partial =
+            Reconciliation::new(1, 1, 100.0, Utc::now().naive_local(), Completeness::Partial);
+        let complete =
+            Reconciliation::new(1, 1, 100.0, Utc::now().naive_local(), Completeness::Full);
+
+        let _ = PartialReconciliations::new(&[partial, complete]);
+    }
+
+    #[test]
+    fn pending_reconciliations_can_contain_only_partial_entries() {
+        let partial =
+            Reconciliation::new(1, 1, 100.0, Utc::now().naive_local(), Completeness::Partial);
+        let partial_2 =
+            Reconciliation::new(1, 1, 100.0, Utc::now().naive_local(), Completeness::Partial);
+
+        let entries = &[partial, partial_2];
+
+        let recs = PartialReconciliations::new(entries);
+
+        assert_eq!(recs.as_ref(), entries);
     }
 
     const TOLERANCE: f64 = 0.0001;
