@@ -6,7 +6,7 @@ use async_trait::async_trait;
 
 use crate::domain::income::Income;
 use crate::domain::payment::Payment;
-use crate::domain::tax_payment::{NewTaxPayment, TaxPayment, ID};
+use crate::domain::tax_payment::{NewTaxPayment, PaymentID, TaxPayment};
 use crate::income::criteria::IncomeCriteria;
 
 pub mod config;
@@ -35,7 +35,7 @@ pub trait PaymentRepository {
 
 #[async_trait]
 pub trait TaxPaymentRepository {
-    async fn insert_payment(&mut self, new_payment: NewTaxPayment) -> anyhow::Result<ID>;
+    async fn insert_payment(&mut self, new_payment: NewTaxPayment) -> anyhow::Result<PaymentID>;
 
     async fn find_by_year(&mut self, year: i32) -> anyhow::Result<Vec<TaxPayment>>;
 }

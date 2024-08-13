@@ -1,10 +1,10 @@
 use chrono::NaiveDateTime;
 
-pub type ID = i64;
+pub type PaymentID = i64;
 
 #[derive(Debug, Clone)]
 pub struct TaxPayment {
-    id: ID,
+    id: PaymentID,
     amount: f64,
     payment_date: NaiveDateTime,
 }
@@ -33,11 +33,23 @@ impl NewTaxPayment {
 }
 
 impl TaxPayment {
-    pub fn new(id: ID, amount: f64, payment_date: NaiveDateTime) -> Self {
+    pub fn new(id: PaymentID, amount: f64, payment_date: NaiveDateTime) -> Self {
         Self {
             id,
             amount,
             payment_date,
         }
+    }
+
+    pub fn id(&self) -> PaymentID {
+        self.id
+    }
+
+    pub fn amount(&self) -> f64 {
+        self.amount
+    }
+
+    pub fn payment_date(&self) -> NaiveDateTime {
+        self.payment_date
     }
 }
