@@ -40,7 +40,7 @@ impl From<&[Reconciliation]> for PartialReconciliations {
 // applies payment to non-reconciled incomes.
 // returns a list of reconciliations created by this operation.
 fn reconcile(
-    incomes: &[Income],
+    incomes: PendingIncomes,
     reconciliations: PartialReconciliations,
     payment: TaxPayment,
     tax_rate: f64,
@@ -48,7 +48,7 @@ fn reconcile(
     let mut entries = Vec::new();
     let mut balance = payment.amount();
 
-    for income in incomes {
+    for income in incomes.iter() {
         if balance <= 0.0 {
             break;
         }
@@ -87,9 +87,35 @@ fn reconcile(
     ReconcileResult { entries, balance }
 }
 
+struct PendingIncomes<'a> {
+    incomes: &'a [Income],
+}
+
+impl<'a> PendingIncomes<'a> {
+    fn new(incomes: &'a [Income]) -> Self {
+        assert!(
+            incomes
+                .windows(2)
+                .all(|w| w[0].datetime() <= w[1].datetime()),
+            "incomes are not sorted by datetime"
+        );
+        Self { incomes }
+    }
+
+    fn iter(&self) -> impl Iterator<Item = &Income> {
+        self.incomes.iter()
+    }
+}
+
+impl AsRef<[Income]> for PendingIncomes<'_> {
+    fn as_ref(&self) -> &[Income] {
+        self.incomes
+    }
+}
+
 #[cfg(test)]
 mod tests {
-    use chrono::Utc;
+    use chrono::{NaiveDate, Utc};
     use speculoos::prelude::*;
 
     use crate::domain::reconciliation::Completeness;
@@ -104,7 +130,7 @@ mod tests {
         let tax_payment = TaxPayment::new(1, 150.0, Utc::now().naive_local());
 
         let res = reconcile(
-            &[income],
+            PendingIncomes::new(&[income]),
             PartialReconciliations::new(vec![]),
             tax_payment,
             tax_rate,
@@ -123,7 +149,7 @@ mod tests {
         let tax_payment = TaxPayment::new(1, 200.0, Utc::now().naive_local());
 
         let res = reconcile(
-            &[income],
+            PendingIncomes::new(&[income]),
             PartialReconciliations::new(vec![]),
             tax_payment,
             tax_rate,
@@ -141,7 +167,7 @@ mod tests {
         let tax_payment = TaxPayment::new(1, 50.0, Utc::now().naive_local());
 
         let res = reconcile(
-            &[income],
+            PendingIncomes::new(&[income]),
             PartialReconciliations::new(vec![]),
             tax_payment,
             tax_rate,
@@ -166,7 +192,7 @@ mod tests {
         let tax_payment = TaxPayment::new(1, 50.0, Utc::now().naive_local());
 
         let res = reconcile(
-            &[income],
+            PendingIncomes::new(&[income]),
             PartialReconciliations::new(vec![partial_reconciliation]),
             tax_payment,
             tax_rate,
@@ -186,7 +212,7 @@ mod tests {
         let tax_payment = TaxPayment::new(1, 100.0, Utc::now().naive_local());
 
         let res = reconcile(
-            &[income_1, income_2],
+            PendingIncomes::new(&[income_1, income_2]),
             PartialReconciliations::new(vec![]),
             tax_payment,
             tax_rate,
@@ -198,6 +224,33 @@ mod tests {
         expect_partial_entry(&res, 1, 50.0);
 
         expect_remaining_balance(&res, 0.0);
+    }
+
+    #[test]
+    fn create_pending_incomes_from_incomes_sorted_by_date() {
+        let base_date = NaiveDate::from_yo_opt(2023, 22).unwrap().and_hms(0, 24, 0);
+        let oldest = Income::new(base_date, 1000.0);
+        let old = Income::new(base_date + chrono::Duration::days(1), 500.0);
+        let new = Income::new(base_date + chrono::Duration::days(10), 800.0);
+        let incomes = &[oldest, old, new];
+
+        let pending_incomes = PendingIncomes::new(incomes);
+
+        assert_eq!(pending_incomes.as_ref(), incomes);
+    }
+
+    #[test]
+    #[should_panic]
+    fn fail_to_create_pending_incomes_from_unsorted_incomes() {
+        let base_date = NaiveDate::from_yo_opt(2023, 22)
+            .unwrap()
+            .and_hms_opt(0, 24, 0)
+            .unwrap();
+        let oldest = Income::new(base_date, 1000.0);
+        let old = Income::new(base_date + chrono::Duration::days(1), 500.0);
+        let new = Income::new(base_date + chrono::Duration::days(10), 800.0);
+
+        let _ = PendingIncomes::new(&[oldest, new, old]);
     }
 
     const TOLERANCE: f64 = 0.0001;
