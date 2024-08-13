@@ -28,8 +28,11 @@ sqlx = { version = "0.7", features = [
 ] }
 toml = "0.8.12"
 dotenvy = "0.15.7"
-uuid = { version = "1.9.1", features = ["v4"] }
+uuid = { version = "1.9.1", features = ["v4", "v7"] }
 async-trait = "0.1.81"
 
 [workspace.metadata.cross.target.aarch64-unknown-linux-gnu]
 image = "cross-raspbian:aarch64"
+
+[dev-dependencies]
+speculoos = "0.11.0"
