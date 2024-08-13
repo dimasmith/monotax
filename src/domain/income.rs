@@ -1,9 +1,11 @@
 use chrono::{NaiveDate, NaiveDateTime};
 use std::cmp::Ordering;
 
+pub type IncomeID = i64;
+
 #[derive(Debug, Clone)]
 pub struct Income {
-    income_no: i64,
+    income_no: IncomeID,
     date: NaiveDateTime,
     amount: f64,
     comment: Option<String>,
@@ -44,6 +46,10 @@ impl Income {
             amount: self.amount,
             comment: self.comment,
         }
+    }
+
+    pub fn id(&self) -> IncomeID {
+        self.income_no
     }
 
     pub fn date(&self) -> NaiveDate {
