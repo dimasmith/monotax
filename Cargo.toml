@@ -31,5 +31,3 @@ dotenvy = "0.15.7"
 uuid = { version = "1.9.1", features = ["v4"] }
 async-trait = "0.1.81"
 
-[workspace.metadata.cross.target.aarch64-unknown-linux-gnu]
-image = "cross-raspbian:aarch64"
