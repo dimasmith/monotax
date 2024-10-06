@@ -1,0 +1,2 @@
+[target.aarch64-unknown-linux-gnu]
+dockerfile = "build/Dockerfile.cross-raspbian-aarch64"
