@@ -3,9 +3,9 @@ use income_repository::SqlxIncomeRepository;
 use payment_repository::SqlxPaymentRepository;
 use sqlx::SqlitePool;
 
-use super::{IncomeRepository, PaymentRepository, TaxPaymentRepository};
 use crate::config::load_config;
 use crate::db::sqlx::tax_payment_repository::SqlxTaxPaymentRepository;
+use crate::domain::repository::{IncomeRepository, PaymentRepository, TaxPaymentRepository};
 
 mod connection;
 mod criteria;

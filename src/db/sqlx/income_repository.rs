@@ -1,6 +1,6 @@
 use super::criteria::SqlxCriterion;
 use super::record::IncomeRecord;
-use crate::db::IncomeRepository;
+use crate::domain::repository::IncomeRepository;
 use crate::domain::Income;
 use crate::income::criteria::{IncomeCriteria, IncomeCriterion};
 use async_trait::async_trait;

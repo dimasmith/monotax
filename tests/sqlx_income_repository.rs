@@ -1,5 +1,6 @@
 use common::connect_to_test_db;
-use monotax::db::{sqlx::income_repository, IncomeRepository};
+use monotax::db::sqlx::income_repository;
+use monotax::domain::repository::IncomeRepository;
 
 mod common;
 mod income_repository_ctk;

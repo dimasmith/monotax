@@ -1,4 +1,5 @@
 pub mod model;
+pub mod repository;
 
 pub use model::income::Income;
 pub use model::payment::Payment;
