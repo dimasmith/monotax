@@ -4,11 +4,9 @@ use std::fs::File;
 
 use chrono::NaiveDateTime;
 use monotax::domain::Income;
-use monotax::{
-    income::criteria::{IncomeCriteria, IncomeCriterion, QuarterFilter},
-    time::Quarter,
-    universalbank,
-};
+use monotax::income::criteria::{IncomeCriteria, IncomeCriterion, QuarterFilter};
+use monotax::integration::universalbank;
+use monotax::time::Quarter;
 
 fn income(date: &str, amount: f64) -> Income {
     let income_date = NaiveDateTime::parse_from_str(date, "%d.%m.%Y %H:%M:%S").unwrap();

@@ -16,10 +16,11 @@ use monotax::db::sqlx::default_payment_repository;
 use monotax::db::sqlx::default_tax_payment_repository;
 use monotax::domain::repository::{IncomeRepository, PaymentRepository, TaxPaymentRepository};
 use monotax::domain::Income;
+use monotax::integration::{taxer, universalbank};
 use monotax::payment::report::plaintext::plaintext_report;
 use monotax::payment::report::PaymentReport;
 use monotax::report::QuarterlyReport;
-use monotax::{config, init, report, taxer, universalbank};
+use monotax::{config, init, report};
 use tokio::task::block_in_place;
 
 mod cli;
