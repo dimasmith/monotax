@@ -19,6 +19,10 @@ impl SqlxPaymentRepository {
     }
 }
 
+pub fn payment_repository(pool: SqlitePool, tax_rate: f64) -> impl PaymentRepository {
+    SqlxPaymentRepository::new(pool, tax_rate)
+}
+
 #[async_trait]
 impl PaymentRepository for SqlxPaymentRepository {
     async fn find_by(&mut self, criteria: IncomeCriteria) -> anyhow::Result<Vec<Payment>> {

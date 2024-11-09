@@ -1,3 +1,4 @@
+//! Connect to the database specified in configuration.
 use sqlx::SqlitePool;
 
 use crate::config::DatabaseConfiguration;

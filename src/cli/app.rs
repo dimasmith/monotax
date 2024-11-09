@@ -17,9 +17,9 @@ pub async fn run_cli_command(
     config: &Configuration,
     db_pool: SqlitePool,
 ) -> anyhow::Result<()> {
-    let mut income_repo = income_repository(db_pool.clone()).await;
-    let mut payment_repo = payment_repository(db_pool.clone(), config.tax().tax_rate()).await;
-    let mut tax_payment_repo = payment_tax_repository(db_pool.clone()).await;
+    let mut income_repo = income_repository(db_pool.clone());
+    let mut payment_repo = payment_repository(db_pool.clone(), config.tax().tax_rate());
+    let mut tax_payment_repo = payment_tax_repository(db_pool.clone());
 
     match &cli.command {
         Command::Init { force } => init::init(&db_pool, *force).await?,

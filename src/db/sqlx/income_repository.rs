@@ -16,6 +16,10 @@ impl SqlxIncomeRepository {
     }
 }
 
+pub fn income_repository(pool: SqlitePool) -> impl IncomeRepository {
+    SqlxIncomeRepository::new(pool)
+}
+
 #[async_trait]
 impl IncomeRepository for SqlxIncomeRepository {
     async fn save_all(&mut self, incomes: &[Income]) -> anyhow::Result<usize> {
