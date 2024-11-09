@@ -3,7 +3,7 @@
 use std::fs::File;
 
 use chrono::NaiveDateTime;
-use monotax::domain::income::Income;
+use monotax::domain::Income;
 use monotax::{
     income::criteria::{IncomeCriteria, IncomeCriterion, QuarterFilter},
     time::Quarter,

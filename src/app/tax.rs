@@ -1,5 +1,5 @@
 use crate::db::{IncomeRepository, PaymentRepository, TaxPaymentRepository};
-use crate::domain::tax_payment::NewTaxPayment;
+use crate::domain::NewTaxPayment;
 use chrono::Utc;
 
 pub async fn mark_income_paid(

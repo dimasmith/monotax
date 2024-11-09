@@ -1,3 +1,5 @@
-pub mod income;
-pub mod payment;
-pub mod tax_payment;
+pub mod model;
+
+pub use model::income::Income;
+pub use model::payment::Payment;
+pub use model::tax_payment::*;

@@ -5,8 +5,8 @@ use crate::config::Config;
 use crate::db::sqlx::criteria::SqlxCriterion;
 use crate::db::sqlx::record::IncomeRecord;
 use crate::db::PaymentRepository;
-use crate::domain::income::Income;
-use crate::domain::payment::Payment;
+use crate::domain::Income;
+use crate::domain::Payment;
 use crate::income::criteria::{IncomeCriteria, IncomeCriterion};
 
 pub struct SqlxPaymentRepository {

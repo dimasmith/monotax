@@ -1,7 +1,7 @@
 use super::criteria::SqlxCriterion;
 use super::record::IncomeRecord;
 use crate::db::IncomeRepository;
-use crate::domain::income::Income;
+use crate::domain::Income;
 use crate::income::criteria::{IncomeCriteria, IncomeCriterion};
 use async_trait::async_trait;
 use sqlx::{QueryBuilder, Sqlite, SqlitePool};
