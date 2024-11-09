@@ -4,3 +4,4 @@
 //! store data and results.
 
 pub mod io;
+pub mod sqlx;
