@@ -5,8 +5,10 @@ use clap::{Parser, Subcommand, ValueEnum};
 use self::filter::FilterArgs;
 use self::payment::PaymentCommands;
 
+pub mod app;
 pub mod filter;
-pub mod payment;
+pub mod handler;
+pub(super) mod payment;
 
 #[derive(Debug, Parser)]
 #[command(version, about, long_about)]
