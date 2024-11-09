@@ -15,7 +15,7 @@ use monotax::db::sqlx::default_income_repository;
 use monotax::db::sqlx::default_payment_repository;
 use monotax::db::sqlx::default_tax_payment_repository;
 use monotax::db::{IncomeRepository, PaymentRepository, TaxPaymentRepository};
-use monotax::domain::income::Income;
+use monotax::domain::Income;
 use monotax::payment::report::plaintext::plaintext_report;
 use monotax::payment::report::PaymentReport;
 use monotax::report::QuarterlyReport;

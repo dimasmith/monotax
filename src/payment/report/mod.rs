@@ -1,4 +1,4 @@
-use crate::domain::payment::Payment;
+use crate::domain::Payment;
 
 pub mod plaintext;
 
@@ -43,7 +43,7 @@ impl PaymentReport {
 mod tests {
     use chrono::{Duration, Local, NaiveDate};
 
-    use crate::domain::income::Income;
+    use crate::domain::Income;
 
     use super::*;
 

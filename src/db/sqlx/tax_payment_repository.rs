@@ -1,5 +1,5 @@
 use crate::db::TaxPaymentRepository;
-use crate::domain::tax_payment::{NewTaxPayment, TaxPayment, ID};
+use crate::domain::{NewTaxPayment, TaxPayment, TaxPaymentID};
 use async_trait::async_trait;
 use chrono::{NaiveDate, NaiveDateTime, NaiveTime};
 use sqlx::{FromRow, SqlitePool};
@@ -10,7 +10,7 @@ pub struct SqlxTaxPaymentRepository {
 
 #[derive(Debug, Clone, FromRow)]
 struct PaymentRecord {
-    id: ID,
+    id: TaxPaymentID,
     amount: f64,
     payment_date: NaiveDateTime,
 }
@@ -23,7 +23,7 @@ impl SqlxTaxPaymentRepository {
 
 #[async_trait]
 impl TaxPaymentRepository for SqlxTaxPaymentRepository {
-    async fn insert_payment(&mut self, new_payment: NewTaxPayment) -> anyhow::Result<ID> {
+    async fn insert_payment(&mut self, new_payment: NewTaxPayment) -> anyhow::Result<TaxPaymentID> {
         let id = self.generate_id().await?;
         let pool = &self.pool;
 
@@ -66,7 +66,7 @@ impl TaxPaymentRepository for SqlxTaxPaymentRepository {
 }
 
 impl SqlxTaxPaymentRepository {
-    async fn generate_id(&mut self) -> anyhow::Result<ID> {
+    async fn generate_id(&mut self) -> anyhow::Result<TaxPaymentID> {
         let pool = &self.pool;
         let id = sqlx::query_scalar!(r#"select max(id) from payment"#)
             .fetch_optional(pool)

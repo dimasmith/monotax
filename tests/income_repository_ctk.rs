@@ -1,6 +1,6 @@
 use chrono::NaiveDateTime;
 use monotax::db::IncomeRepository;
-use monotax::domain::income::Income;
+use monotax::domain::Income;
 use monotax::income::criteria::IncomeCriteria;
 use monotax::income::criteria::IncomeCriterion;
 use monotax::income::criteria::QuarterFilter;

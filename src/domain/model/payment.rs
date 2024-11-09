@@ -1,4 +1,4 @@
-use crate::domain::income::Income;
+use crate::domain::Income;
 
 /// Tax payment for a single income.
 #[derive(Debug, Clone)]

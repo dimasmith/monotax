@@ -2,7 +2,7 @@
 
 use chrono::{Datelike, Local, NaiveDate};
 
-use crate::domain::income::Income;
+use crate::domain::Income;
 use crate::income::criteria::{QuarterFilter, YearFilter};
 use crate::time::Quarter;
 
