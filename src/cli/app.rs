@@ -2,6 +2,7 @@
 
 use sqlx::SqlitePool;
 
+use crate::config::Configuration;
 use crate::db::sqlx::{income_repository, payment_repository, payment_tax_repository};
 use crate::init;
 
@@ -11,13 +12,17 @@ use super::Cli;
 use super::Command;
 
 /// Runs a CLI command.
-pub async fn run_cli_command(cli: &Cli, db_pool: SqlitePool) -> anyhow::Result<()> {
+pub async fn run_cli_command(
+    cli: &Cli,
+    config: &Configuration,
+    db_pool: SqlitePool,
+) -> anyhow::Result<()> {
     let mut income_repo = income_repository(db_pool.clone()).await;
-    let mut payment_repo = payment_repository(db_pool.clone()).await;
+    let mut payment_repo = payment_repository(db_pool.clone(), config.tax().tax_rate()).await;
     let mut tax_payment_repo = payment_tax_repository(db_pool.clone()).await;
 
     match &cli.command {
-        Command::Init { force } => init::init(*force).await?,
+        Command::Init { force } => init::init(&db_pool, *force).await?,
         Command::Import { statement, filter } => {
             import_incomes(&mut income_repo, statement, filter).await?;
         }
