@@ -3,9 +3,9 @@
 use std::fs::File;
 
 use chrono::NaiveDateTime;
+use monotax::domain::filter::income::{IncomeCriteria, IncomeCriterion, QuarterFilter};
 use monotax::domain::Income;
 use monotax::domain::Quarter;
-use monotax::income::criteria::{IncomeCriteria, IncomeCriterion, QuarterFilter};
 use monotax::integration::universalbank;
 
 fn income(date: &str, amount: f64) -> Income {

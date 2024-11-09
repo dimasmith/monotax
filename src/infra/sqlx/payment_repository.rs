@@ -1,10 +1,11 @@
 use async_trait::async_trait;
 use sqlx::{query, QueryBuilder, Sqlite, SqlitePool};
 
+use crate::domain::filter::income::IncomeCriteria;
+use crate::domain::filter::income::IncomeCriterion;
 use crate::domain::repository::PaymentRepository;
 use crate::domain::Income;
 use crate::domain::Payment;
-use crate::income::criteria::{IncomeCriteria, IncomeCriterion};
 use crate::infra::sqlx::criteria::SqlxCriterion;
 use crate::infra::sqlx::record::IncomeRecord;
 

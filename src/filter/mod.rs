@@ -1,7 +1,9 @@
 //! Filters for incomes.
 
-use crate::domain::Income;
-use crate::income::criteria::{IncomeCriteria, IncomeCriterion};
+use crate::domain::{
+    filter::income::{IncomeCriteria, IncomeCriterion},
+    Income,
+};
 
 pub mod date;
 

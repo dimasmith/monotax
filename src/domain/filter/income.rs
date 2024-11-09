@@ -16,7 +16,7 @@
 //! All criteria are combined into a single [`IncomeCriteria`] object.
 //!
 //! ```rust
-//! use monotax::income::criteria::{IncomeCriteria, IncomeCriterion, YearFilter, QuarterFilter};
+//! use monotax::domain::filter::income::{IncomeCriteria, IncomeCriterion, YearFilter, QuarterFilter};
 //! use monotax::domain::Quarter;
 //!
 //! let criteria = IncomeCriteria::new(&[
