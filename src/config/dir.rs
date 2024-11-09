@@ -1,20 +1,12 @@
-//! Application configuration.
-//!
-//! The configuration is stored in the XDG directories. The configuration file is a TOML file.
-//! By default, the configuration file is located in the `~/.config/monotax/config.toml`.
-//!
-//! It is expected that users will edit the configuration file manually.
-//! It's rarely needed to change the configuration after the initial setup.
-//!
-//! Running the `monotax init` command will create the default configuration file.
+use std::{
+    fs::{self, File},
+    path::{Path, PathBuf},
+};
 
 use directories::ProjectDirs;
-use std::fs;
-use std::fs::File;
-use std::path::{Path, PathBuf};
-
 use log::{info, warn};
-use serde::{Deserialize, Serialize};
+
+use super::Config;
 
 const APP_NAME: &str = "monotax";
 
@@ -48,29 +40,10 @@ impl ConfigurationDirs {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize, Default)]
-pub struct Config {
-    taxer: TaxerImportConfig,
-    tax: TaxConfig,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct TaxConfig {
-    tax_rate: f64,
-}
-
-/// Configuration for the Taxer import.
+/// Load application configuration from the default configuration files.
 ///
-/// - The `id` is person's national tax identifier.
-/// - The `account_name` is the name of the account in the Taxer.
-/// - The `default_comment` is a comment that will be used if the income has no comment.
-#[derive(Debug, Serialize, Deserialize)]
-pub struct TaxerImportConfig {
-    id: String,
-    account_name: String,
-    default_comment: String,
-}
-
+/// The configuration reads the `XDG_CONFIG/monotax/config.toml` file if it is found.
+/// You can override the settings using the environment variables.
 pub fn load_config() -> anyhow::Result<Config> {
     let xdg_dirs = base_directories()?;
     let config_file_path = xdg_dirs.place_config_file("config.toml")?;
@@ -117,57 +90,4 @@ pub fn base_directories() -> anyhow::Result<ConfigurationDirs> {
         project_dirs.data_dir().to_path_buf(),
     );
     Ok(dirs)
-}
-
-impl Config {
-    pub fn taxer(&self) -> &TaxerImportConfig {
-        &self.taxer
-    }
-
-    pub fn tax(&self) -> &TaxConfig {
-        &self.tax
-    }
-}
-
-impl TaxConfig {
-    pub fn new(tax_rate: f64) -> Self {
-        Self { tax_rate }
-    }
-
-    pub fn tax_rate(&self) -> f64 {
-        self.tax_rate
-    }
-}
-
-impl TaxerImportConfig {
-    /// Provide the national tax identifier.
-    pub fn id(&self) -> &str {
-        &self.id
-    }
-
-    /// Provide the name of the account in the Taxer.
-    pub fn account_name(&self) -> &str {
-        &self.account_name
-    }
-
-    /// Provide the default comment that will be used if the income has no comment.
-    pub fn default_comment(&self) -> &str {
-        &self.default_comment
-    }
-}
-
-impl Default for TaxConfig {
-    fn default() -> Self {
-        Self { tax_rate: 0.05 }
-    }
-}
-
-impl Default for TaxerImportConfig {
-    fn default() -> Self {
-        Self {
-            id: "1234567890".to_string(),
-            account_name: Default::default(),
-            default_comment: Default::default(),
-        }
-    }
 }

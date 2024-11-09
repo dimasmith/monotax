@@ -1,4 +1,4 @@
-use crate::config::base_directories;
+use crate::config::dir::base_directories;
 use anyhow::Context;
 use std::env;
 use std::path::PathBuf;
