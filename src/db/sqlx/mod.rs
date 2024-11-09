@@ -7,7 +7,7 @@ use crate::config::load_config;
 use crate::db::sqlx::tax_payment_repository::SqlxTaxPaymentRepository;
 use crate::domain::repository::{IncomeRepository, PaymentRepository, TaxPaymentRepository};
 
-mod connection;
+pub mod connection;
 mod criteria;
 mod income_repository;
 mod payment_repository;
