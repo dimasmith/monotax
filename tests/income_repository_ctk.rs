@@ -1,11 +1,11 @@
 use chrono::NaiveDateTime;
 use monotax::domain::repository::IncomeRepository;
 use monotax::domain::Income;
+use monotax::domain::Quarter;
 use monotax::income::criteria::IncomeCriteria;
 use monotax::income::criteria::IncomeCriterion;
 use monotax::income::criteria::QuarterFilter;
 use monotax::income::criteria::YearFilter;
-use monotax::time::Quarter;
 
 fn income(datetime: &str, amount: f64) -> Income {
     let datetime = NaiveDateTime::parse_from_str(datetime, "%Y-%m-%d %H:%M:%S").unwrap();

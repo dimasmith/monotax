@@ -15,4 +15,3 @@ pub mod init;
 pub mod integration;
 pub mod payment;
 pub mod report;
-pub mod time;

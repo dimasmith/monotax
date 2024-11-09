@@ -1,9 +1,7 @@
 use chrono::Datelike;
 
-use crate::{
-    income::criteria::{QuarterFilter, YearFilter},
-    time::Quarter,
-};
+use crate::domain::Quarter;
+use crate::income::criteria::{QuarterFilter, YearFilter};
 
 pub trait SqlxCriterion<T> {
     fn bind_param(&self) -> Option<(&str, T)>;
