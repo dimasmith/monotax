@@ -1,3 +1,5 @@
+//! Core data elements of the applicaton.
+
 pub mod model;
 pub mod repository;
 
