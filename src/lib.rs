@@ -10,6 +10,7 @@ pub mod db;
 pub mod domain;
 pub mod filter;
 pub mod income;
+pub mod infra;
 pub mod init;
 pub mod integration;
 pub mod payment;
