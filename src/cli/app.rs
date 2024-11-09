@@ -3,7 +3,7 @@
 use sqlx::SqlitePool;
 
 use crate::config::Configuration;
-use crate::db::sqlx::{income_repository, payment_repository, payment_tax_repository};
+use crate::infra::sqlx::{income_repository, payment_repository, payment_tax_repository};
 use crate::init;
 
 use super::handler::*;

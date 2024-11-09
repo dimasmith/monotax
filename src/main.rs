@@ -6,7 +6,7 @@ use log::{debug, error};
 use monotax::cli::app::run_cli_command;
 use monotax::cli::Cli;
 use monotax::config::load_config;
-use monotax::db::sqlx::connection::connection_pool;
+use monotax::infra::sqlx::connection::connection_pool;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
