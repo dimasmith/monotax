@@ -1,5 +1,4 @@
-use crate::db::TaxPaymentRepository;
-use crate::domain::{NewTaxPayment, TaxPayment, TaxPaymentID};
+use crate::domain::{repository::TaxPaymentRepository, NewTaxPayment, TaxPayment, TaxPaymentID};
 use async_trait::async_trait;
 use chrono::{NaiveDate, NaiveDateTime, NaiveTime};
 use sqlx::{FromRow, SqlitePool};

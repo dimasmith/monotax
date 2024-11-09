@@ -1,5 +1,5 @@
 use chrono::NaiveDateTime;
-use monotax::db::IncomeRepository;
+use monotax::domain::repository::IncomeRepository;
 use monotax::domain::Income;
 use monotax::income::criteria::IncomeCriteria;
 use monotax::income::criteria::IncomeCriterion;

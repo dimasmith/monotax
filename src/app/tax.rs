@@ -1,4 +1,4 @@
-use crate::db::{IncomeRepository, PaymentRepository, TaxPaymentRepository};
+use crate::domain::repository::{IncomeRepository, PaymentRepository, TaxPaymentRepository};
 use crate::domain::NewTaxPayment;
 use chrono::Utc;
 
