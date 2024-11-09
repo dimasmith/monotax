@@ -20,6 +20,10 @@ impl SqlxTaxPaymentRepository {
     }
 }
 
+pub fn payment_tax_repository(pool: SqlitePool) -> impl TaxPaymentRepository {
+    SqlxTaxPaymentRepository::new(pool)
+}
+
 #[async_trait]
 impl TaxPaymentRepository for SqlxTaxPaymentRepository {
     async fn insert_payment(&mut self, new_payment: NewTaxPayment) -> anyhow::Result<TaxPaymentID> {

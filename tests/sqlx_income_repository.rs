@@ -7,7 +7,7 @@ mod income_repository_ctk;
 
 async fn create_repository() -> impl IncomeRepository {
     let pool = connect_to_test_db().await;
-    income_repository(pool).await
+    income_repository(pool)
 }
 
 #[tokio::test]
