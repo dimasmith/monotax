@@ -17,7 +17,7 @@
 //!
 //! ```rust
 //! use monotax::income::criteria::{IncomeCriteria, IncomeCriterion, YearFilter, QuarterFilter};
-//! use monotax::time::Quarter;
+//! use monotax::domain::Quarter;
 //!
 //! let criteria = IncomeCriteria::new(&[
 //!     IncomeCriterion::Year(YearFilter::One(2021)),
@@ -31,7 +31,7 @@
 //! and also to translate to SQL queries.
 //! This way the user can use the same criteria to filter incomes in memory and in the database.
 
-use crate::time::Quarter;
+use crate::domain::Quarter;
 
 /// A set of filtering criteria to pick necessary incomes.
 #[derive(Debug, Clone)]

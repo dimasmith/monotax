@@ -1,5 +1,5 @@
+use crate::domain::Quarter;
 use crate::income::criteria::{IncomeCriteria, IncomeCriterion, QuarterFilter, YearFilter};
-use crate::time::Quarter;
 use clap::Args;
 
 use crate::cli::{IncludeQuarters, IncludeYears};

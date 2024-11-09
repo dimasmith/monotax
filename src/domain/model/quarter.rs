@@ -1,4 +1,4 @@
-//! Time-related items.
+//! Reporting periods like quarters or years.
 
 use chrono::{Datelike, Local, NaiveDate, NaiveDateTime};
 use clap::ValueEnum;
