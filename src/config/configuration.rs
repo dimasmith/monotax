@@ -2,9 +2,10 @@ use serde::{Deserialize, Serialize};
 
 /// Application configuration.
 #[derive(Debug, Serialize, Deserialize, Default)]
-pub struct Config {
+pub struct Configuration {
     taxer: TaxerImportConfig,
     tax: TaxConfig,
+    pub database: DatabaseConfiguration,
 }
 
 /// Tax rate configuration. Deprecated.
@@ -26,7 +27,12 @@ pub struct TaxerImportConfig {
     default_comment: String,
 }
 
-impl Config {
+#[derive(Debug, Deserialize, Serialize)]
+pub struct DatabaseConfiguration {
+    pub url: String,
+}
+
+impl Configuration {
     pub fn taxer(&self) -> &TaxerImportConfig {
         &self.taxer
     }
@@ -63,6 +69,13 @@ impl TaxerImportConfig {
     }
 }
 
+impl DatabaseConfiguration {
+    pub fn connection_url(&self) -> String {
+        // TODO: accept file paths in additon to URLs.
+        self.url.clone()
+    }
+}
+
 impl Default for TaxConfig {
     fn default() -> Self {
         Self { tax_rate: 0.05 }
@@ -75,6 +88,14 @@ impl Default for TaxerImportConfig {
             id: "1234567890".to_string(),
             account_name: Default::default(),
             default_comment: Default::default(),
+        }
+    }
+}
+
+impl Default for DatabaseConfiguration {
+    fn default() -> Self {
+        Self {
+            url: "sqlite:monotax.db".to_string(),
         }
     }
 }
