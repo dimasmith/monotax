@@ -33,5 +33,5 @@ async fn main() -> anyhow::Result<()> {
         }
     };
 
-    run_cli_command(&cli, db_pool).await
+    run_cli_command(&cli, &config, db_pool).await
 }

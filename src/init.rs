@@ -1,10 +1,11 @@
 //! Initialize the application configuration
 
-use crate::config::dir::create_default_config;
-use crate::db::init::initialize_db;
+use sqlx::SqlitePool;
 
-pub async fn init(force: bool) -> anyhow::Result<()> {
+use crate::{config::dir::create_default_config, db::sqlx::init::initialize_db};
+
+pub async fn init(db_pool: &SqlitePool, force: bool) -> anyhow::Result<()> {
     create_default_config(force)?;
-    initialize_db().await?;
+    initialize_db(db_pool).await?;
     Ok(())
 }

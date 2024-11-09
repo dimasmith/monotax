@@ -1,7 +1,6 @@
 use async_trait::async_trait;
 use sqlx::{query, QueryBuilder, Sqlite, SqlitePool};
 
-use crate::config::Configuration;
 use crate::db::sqlx::criteria::SqlxCriterion;
 use crate::db::sqlx::record::IncomeRecord;
 use crate::domain::repository::PaymentRepository;
@@ -11,12 +10,12 @@ use crate::income::criteria::{IncomeCriteria, IncomeCriterion};
 
 pub struct SqlxPaymentRepository {
     pool: SqlitePool,
-    config: Configuration,
+    tax_rate: f64,
 }
 
 impl SqlxPaymentRepository {
-    pub fn new(pool: SqlitePool, config: Configuration) -> Self {
-        Self { pool, config }
+    pub fn new(pool: SqlitePool, tax_rate: f64) -> Self {
+        Self { pool, tax_rate }
     }
 }
 
@@ -24,7 +23,7 @@ impl SqlxPaymentRepository {
 impl PaymentRepository for SqlxPaymentRepository {
     async fn find_by(&mut self, criteria: IncomeCriteria) -> anyhow::Result<Vec<Payment>> {
         let pool = &self.pool;
-        let tax_rate = self.config.tax().tax_rate();
+        let tax_rate = self.tax_rate;
 
         let mut query_builder: QueryBuilder<Sqlite> = QueryBuilder::new(
             r#"
