@@ -1,7 +1,7 @@
 use async_trait::async_trait;
 use sqlx::{query, QueryBuilder, Sqlite, SqlitePool};
 
-use crate::config::Config;
+use crate::config::Configuration;
 use crate::db::sqlx::criteria::SqlxCriterion;
 use crate::db::sqlx::record::IncomeRecord;
 use crate::domain::repository::PaymentRepository;
@@ -11,11 +11,11 @@ use crate::income::criteria::{IncomeCriteria, IncomeCriterion};
 
 pub struct SqlxPaymentRepository {
     pool: SqlitePool,
-    config: Config,
+    config: Configuration,
 }
 
 impl SqlxPaymentRepository {
-    pub fn new(pool: SqlitePool, config: Config) -> Self {
+    pub fn new(pool: SqlitePool, config: Configuration) -> Self {
         Self { pool, config }
     }
 }

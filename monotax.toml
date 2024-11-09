@@ -1,0 +1,14 @@
+# default configuration for monotax.
+# the application tries to read the XDG_CONFIG/monotax/config.toml file on the startup and
+# replace values in this file with those from the local configuration.
+
+[tax]
+tax_rate = 0.05
+
+[taxer]
+id = "1234567890"
+account_name = "1234567890"
+default_comment = "Income"
+
+[database]
+url = "sqlite:test.db"
