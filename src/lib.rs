@@ -9,7 +9,6 @@ pub mod cli;
 pub mod config;
 pub mod domain;
 pub mod filter;
-pub mod income;
 pub mod infra;
 pub mod init;
 pub mod integration;

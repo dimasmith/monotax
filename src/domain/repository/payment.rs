@@ -4,8 +4,7 @@
 
 use async_trait::async_trait;
 
-use crate::domain::Payment;
-use crate::income::criteria::IncomeCriteria;
+use crate::domain::{filter::income::IncomeCriteria, Payment};
 
 #[async_trait]
 pub trait PaymentRepository {
