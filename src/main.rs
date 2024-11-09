@@ -1,5 +1,4 @@
 use std::fs::File;
-use std::io::{prelude::*, stdout, BufWriter};
 use std::path::Path;
 
 use anyhow::Context;
@@ -16,6 +15,7 @@ use monotax::db::sqlx::default_payment_repository;
 use monotax::db::sqlx::default_tax_payment_repository;
 use monotax::domain::repository::{IncomeRepository, PaymentRepository, TaxPaymentRepository};
 use monotax::domain::Income;
+use monotax::infra::io::writer;
 use monotax::integration::{taxer, universalbank};
 use monotax::payment::report::plaintext::plaintext_report;
 use monotax::payment::report::PaymentReport;
@@ -187,12 +187,4 @@ async fn read_incomes(
         None => income_repo.find_all().await?,
     };
     Ok(incomes)
-}
-
-fn writer(output: Option<&Path>) -> anyhow::Result<Box<dyn Write>> {
-    let writer: Box<dyn Write> = match output {
-        Some(path) => Box::new(BufWriter::new(File::create(path)?)),
-        None => Box::new(BufWriter::new(stdout())),
-    };
-    Ok(writer)
 }
