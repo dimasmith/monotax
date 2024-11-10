@@ -5,18 +5,14 @@ use std::{fs::File, path::Path};
 use anyhow::Context;
 use tokio::task::block_in_place;
 
-use crate::{
-    app::tax::mark_income_paid,
-    config,
-    domain::{
-        repository::{IncomeRepository, PaymentRepository, TaxPaymentRepository},
-        Income,
-    },
-    infra::io::writer,
-    integration::{taxer, universalbank},
-    payment::report::{plaintext::plaintext_report, PaymentReport},
-    report::{self, QuarterlyReport},
-};
+use crate::app::tax::mark_income_paid;
+use crate::config;
+use crate::domain::repository::{IncomeRepository, PaymentRepository, TaxPaymentRepository};
+use crate::domain::Income;
+use crate::infra::io::writer;
+use crate::integration::{taxer, universalbank};
+use crate::payment::report::{plaintext::plaintext_report, PaymentReport};
+use crate::report::{self, QuarterlyReport};
 
 use super::{filter::FilterArgs, ReportFormat};
 
