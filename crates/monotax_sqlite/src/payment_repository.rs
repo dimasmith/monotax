@@ -1,13 +1,11 @@
 use async_trait::async_trait;
+use monotax_core::domain::filter::income::{IncomeCriteria, IncomeCriterion};
+use monotax_core::domain::repository::PaymentRepository;
+use monotax_core::domain::{Income, Payment};
 use sqlx::{query, QueryBuilder, Sqlite, SqlitePool};
 
-use crate::domain::filter::income::IncomeCriteria;
-use crate::domain::filter::income::IncomeCriterion;
-use crate::domain::repository::PaymentRepository;
-use crate::domain::Income;
-use crate::domain::Payment;
-use crate::infra::sqlx::criteria::SqlxCriterion;
-use crate::infra::sqlx::record::IncomeRecord;
+use crate::criteria::SqlxCriterion;
+use crate::record::IncomeRecord;
 
 pub struct SqlxPaymentRepository {
     pool: SqlitePool,

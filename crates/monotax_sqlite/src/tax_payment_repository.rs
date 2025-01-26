@@ -1,6 +1,7 @@
-use crate::domain::{repository::TaxPaymentRepository, NewTaxPayment, TaxPayment, TaxPaymentID};
 use async_trait::async_trait;
 use chrono::{NaiveDate, NaiveDateTime, NaiveTime};
+use monotax_core::domain::repository::TaxPaymentRepository;
+use monotax_core::domain::{NewTaxPayment, TaxPayment, TaxPaymentID};
 use sqlx::{FromRow, SqlitePool};
 
 pub struct SqlxTaxPaymentRepository {

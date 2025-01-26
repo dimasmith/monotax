@@ -1,10 +1,12 @@
 //! Invoke cli application with necessary environment and a command.
 
+use monotax_sqlite::income_repository::income_repository;
+use monotax_sqlite::payment_repository::payment_repository;
+use monotax_sqlite::tax_payment_repository::payment_tax_repository;
 use sqlx::SqlitePool;
 
-use monotax_core::config::Configuration;
-use monotax_core::infra::sqlx::{income_repository, payment_repository, payment_tax_repository};
-use monotax_core::init;
+use crate::config::Configuration;
+use crate::init::init;
 
 use super::handler::*;
 use super::payment::PaymentCommands;
@@ -22,7 +24,7 @@ pub async fn run_cli_command(
     let mut tax_payment_repo = payment_tax_repository(db_pool.clone());
 
     match &cli.command {
-        Command::Init { force } => init::init(&db_pool, *force).await?,
+        Command::Init { force } => init(&db_pool, *force).await?,
         Command::Import { statement, filter } => {
             import_incomes(&mut income_repo, statement, filter).await?;
         }

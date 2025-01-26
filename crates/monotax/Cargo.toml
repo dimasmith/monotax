@@ -5,17 +5,21 @@ edition = "2021"
 
 [dependencies]
 monotax_core = { path = "../monotax_core/" }
+monotax_sqlite = { path = "../monotax_sqlite/" }
 
 anyhow = "1.0.81"
 clap = { version = "4.5.4", features = ["derive"] }
+config = "0.14.1"
+directories = "5.0.1"
+dotenvy = "0.15.7"
 log = "0.4.21"
 env_logger = "0.11.3"
 tokio = { version = "1", features = ["rt", "rt-multi-thread", "macros"] }
-
+serde = { version = "1", features = ["derive"] }
 sqlx = { version = "0.7", features = [
   "macros",
   "sqlite",
   "runtime-tokio",
   "chrono",
 ] }
-dotenvy = "0.15.7"
+toml = "0.8.12"

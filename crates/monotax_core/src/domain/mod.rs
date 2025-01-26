@@ -1,5 +1,6 @@
 //! Core data elements of the applicaton.
 
+pub mod config;
 pub mod filter;
 pub mod model;
 pub mod repository;

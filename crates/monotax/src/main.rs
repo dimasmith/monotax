@@ -3,12 +3,14 @@ use std::process::exit;
 use clap::Parser;
 use cli::app::run_cli_command;
 use cli::Cli;
+use config::load_config;
 use env_logger::{Builder, Env};
 use log::{debug, error};
-use monotax_core::config::load_config;
-use monotax_core::infra::sqlx::connection::connection_pool;
+use monotax_sqlite::connection::connection_pool;
 
 mod cli;
+mod config;
+mod init;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
