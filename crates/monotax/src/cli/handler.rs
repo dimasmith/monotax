@@ -3,7 +3,7 @@
 use std::{fs::File, path::Path};
 
 use anyhow::Context;
-use monotax_core::app::income::{import_incomes, read_incomes};
+use monotax_core::app::income::read_incomes;
 use monotax_dbo::dbo;
 use tokio::task::block_in_place;
 
@@ -26,16 +26,6 @@ pub async fn generate_taxer_report(
     let incomes = read_incomes_from_file_or_db(income_repo, input, filter).await?;
     let writer = writer(output)?;
     taxer::export_csv(incomes, config.taxer(), writer)?;
-    Ok(())
-}
-
-pub async fn import_incomes_from_dbo_csv(
-    income_repo: &mut impl IncomeRepository,
-    statement: &Path,
-    filter: &FilterArgs,
-) -> anyhow::Result<()> {
-    let incomes = incomes_from_dbo_file(statement, filter).await?;
-    let _ = import_incomes(incomes, income_repo).await?;
     Ok(())
 }
 

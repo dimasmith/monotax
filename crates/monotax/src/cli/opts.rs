@@ -2,7 +2,7 @@ use std::path::PathBuf;
 
 use clap::{Parser, Subcommand};
 
-use super::filter::FilterArgs;
+use super::{filter::FilterArgs, income::IncomeCommands};
 
 #[derive(Debug, Parser)]
 #[command(version, about, long_about)]
@@ -20,11 +20,9 @@ pub enum Command {
         force: bool,
     },
     /// Import incomes into the database
-    Import {
-        /// Path to the statement csv file
-        statement: PathBuf,
-        #[command(flatten)]
-        filter: FilterArgs,
+    Incomes {
+        #[clap(subcommand)]
+        command: IncomeCommands,
     },
     /// Export statement csv to taxer csv
     Taxer {
