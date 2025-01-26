@@ -1102,6 +1102,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "monotax"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "clap",
+ "dotenvy",
+ "env_logger",
+ "log",
+ "monotax_core",
+ "sqlx",
+ "tokio",
+]
+
+[[package]]
 name = "monotax_core"
 version = "0.3.0-alpha.2"
 dependencies = [
