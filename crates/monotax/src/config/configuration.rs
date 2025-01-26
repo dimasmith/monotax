@@ -1,4 +1,3 @@
-use monotax_core::domain::config::TaxConfig;
 use monotax_core::integration::taxer::TaxerImportConfig;
 use monotax_sqlite::configuration::DatabaseConfiguration;
 use serde::{Deserialize, Serialize};
@@ -7,7 +6,6 @@ use serde::{Deserialize, Serialize};
 #[derive(Debug, Serialize, Deserialize, Default)]
 pub struct Configuration {
     taxer: TaxerImportConfig,
-    tax: TaxConfig,
     pub database: DatabaseConfiguration,
 }
 
@@ -16,7 +14,7 @@ impl Configuration {
         &self.taxer
     }
 
-    pub fn tax(&self) -> &TaxConfig {
-        &self.tax
+    pub fn database(&self) -> &DatabaseConfiguration {
+        &self.database
     }
 }

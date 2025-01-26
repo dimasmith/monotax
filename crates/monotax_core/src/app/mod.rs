@@ -3,4 +3,3 @@
 //! to achieve business goals.
 
 pub mod income;
-pub mod tax;
