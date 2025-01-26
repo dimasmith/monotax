@@ -3,6 +3,7 @@
 use std::{fs::File, path::Path};
 
 use anyhow::Context;
+use monotax_core::app::income::{import_incomes, read_incomes};
 use monotax_dbo::dbo;
 use tokio::task::block_in_place;
 
@@ -57,7 +58,7 @@ pub async fn generate_incomes_report(
     filter: &FilterArgs,
 ) -> anyhow::Result<()> {
     let config = config::load_config()?;
-    let incomes = read_dbo_incomes(income_repo, input, filter).await?;
+    let incomes = read_incomes_from_file_or_db(income_repo, input, filter).await?;
     let report = QuarterlyReport::build_report(incomes, config.tax());
     let writer = writer(output)?;
     match format {
@@ -74,7 +75,7 @@ pub async fn generate_taxer_report(
     filter: &FilterArgs,
 ) -> anyhow::Result<()> {
     let config = config::load_config()?;
-    let incomes = read_dbo_incomes(income_repo, input, filter).await?;
+    let incomes = read_incomes_from_file_or_db(income_repo, input, filter).await?;
     let writer = writer(output)?;
     taxer::export_csv(incomes, config.taxer(), writer)?;
     Ok(())
@@ -85,25 +86,27 @@ pub async fn import_incomes_from_dbo_csv(
     statement: &Path,
     filter: &FilterArgs,
 ) -> anyhow::Result<()> {
-    let incomes = read_dbo_incomes(income_repo, Some(statement), filter).await?;
-    let imported = income_repo
-        .save_all(&incomes.into_iter().collect::<Vec<_>>())
-        .await?;
-    log::info!("Imported {} incomes", imported);
+    let incomes = incomes_from_dbo_file(statement, filter).await?;
+    let _ = import_incomes(incomes, income_repo).await?;
     Ok(())
 }
 
-pub async fn read_dbo_incomes(
+async fn read_incomes_from_file_or_db(
     income_repo: &mut impl IncomeRepository,
     input: Option<&Path>,
     filter: &FilterArgs,
-) -> anyhow::Result<impl IntoIterator<Item = Income>> {
+) -> anyhow::Result<Vec<Income>> {
     let incomes = match input {
-        Some(stmt) => block_in_place(move || {
-            let file = File::open(stmt).context("opening input file")?;
-            dbo::read_incomes(file, filter.criteria())
-        })?,
-        None => income_repo.find_all().await?,
+        Some(statement) => incomes_from_dbo_file(statement, filter).await?,
+        None => read_incomes(filter.criteria(), income_repo).await?,
     };
+    Ok(incomes)
+}
+
+async fn incomes_from_dbo_file(input: &Path, filter: &FilterArgs) -> anyhow::Result<Vec<Income>> {
+    let incomes = block_in_place(move || {
+        let file = File::open(input).context("opening input file")?;
+        dbo::read_incomes(file, filter.criteria())
+    })?;
     Ok(incomes)
 }
