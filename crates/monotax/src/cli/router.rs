@@ -11,7 +11,7 @@ use super::opts::Command;
 use super::Cli;
 
 /// Runs a CLI command.
-pub async fn run_cli_command(
+pub async fn handle_command(
     cli: &Cli,
     _config: &Configuration,
     db_pool: SqlitePool,
@@ -20,8 +20,8 @@ pub async fn run_cli_command(
 
     match &cli.command {
         Command::Init { force } => init(&db_pool, *force).await?,
-        Command::Import { statement, filter } => {
-            import_incomes_from_dbo_csv(&mut income_repo, statement, filter).await?;
+        Command::Incomes { command } => {
+            super::income::process_incomes(command, &mut income_repo).await?
         }
 
         Command::Taxer {

@@ -37,13 +37,6 @@ impl ConfigurationDirs {
         file_path.push(path);
         Ok(file_path)
     }
-
-    pub fn place_data_file<P: AsRef<Path>>(&self, path: P) -> anyhow::Result<PathBuf> {
-        fs::create_dir_all(&self.data_dir)?;
-        let mut file_path = self.data_dir.clone();
-        file_path.push(path);
-        Ok(file_path)
-    }
 }
 
 /// Load application configuration from the default configuration files.
