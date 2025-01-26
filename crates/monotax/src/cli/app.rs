@@ -26,7 +26,7 @@ pub async fn run_cli_command(
     match &cli.command {
         Command::Init { force } => init(&db_pool, *force).await?,
         Command::Import { statement, filter } => {
-            import_incomes(&mut income_repo, statement, filter).await?;
+            import_incomes_from_dbo_csv(&mut income_repo, statement, filter).await?;
         }
 
         Command::Taxer {

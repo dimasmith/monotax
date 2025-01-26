@@ -1113,6 +1113,7 @@ dependencies = [
  "env_logger",
  "log",
  "monotax_core",
+ "monotax_dbo",
  "monotax_sqlite",
  "serde",
  "sqlx",
@@ -1129,11 +1130,21 @@ dependencies = [
  "chrono",
  "clap",
  "csv",
- "encoding_rs",
- "encoding_rs_rw",
  "log",
  "serde",
  "uuid",
+]
+
+[[package]]
+name = "monotax_dbo"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "chrono",
+ "csv",
+ "encoding_rs",
+ "encoding_rs_rw",
+ "monotax_core",
 ]
 
 [[package]]

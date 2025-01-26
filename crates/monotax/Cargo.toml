@@ -6,6 +6,7 @@ edition = "2021"
 [dependencies]
 monotax_core = { path = "../monotax_core/" }
 monotax_sqlite = { path = "../monotax_sqlite/" }
+monotax_dbo = { path = "../monotax_dbo/" }
 
 anyhow = "1.0.81"
 clap = { version = "4.5.4", features = ["derive"] }
