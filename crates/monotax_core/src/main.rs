@@ -3,10 +3,10 @@ use std::process::exit;
 use clap::Parser;
 use env_logger::{Builder, Env};
 use log::{debug, error};
-use monotax::cli::app::run_cli_command;
-use monotax::cli::Cli;
-use monotax::config::load_config;
-use monotax::infra::sqlx::connection::connection_pool;
+use monotax_core::cli::app::run_cli_command;
+use monotax_core::cli::Cli;
+use monotax_core::config::load_config;
+use monotax_core::infra::sqlx::connection::connection_pool;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {

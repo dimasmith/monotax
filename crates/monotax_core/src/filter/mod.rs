@@ -14,8 +14,8 @@ pub mod date;
 ///
 /// # Example
 /// ```rust
-/// # use monotax::domain::Income;
-/// # use monotax::filter::IncomePredicate;
+/// # use monotax_core::domain::Income;
+/// # use monotax_core::filter::IncomePredicate;
 /// # use chrono::{NaiveDateTime, NaiveDate};
 /// struct LowerAmountPredicate {
 ///    max_amount: f64,
