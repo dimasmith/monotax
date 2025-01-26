@@ -1,6 +1,8 @@
-use crate::domain::filter::income::{IncomeCriteria, IncomeCriterion, QuarterFilter, YearFilter};
-use crate::domain::Quarter;
 use clap::Args;
+use monotax_core::domain::filter::income::{
+    IncomeCriteria, IncomeCriterion, QuarterFilter, YearFilter,
+};
+use monotax_core::domain::Quarter;
 
 use crate::cli::{IncludeQuarters, IncludeYears};
 
