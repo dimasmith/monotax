@@ -9,5 +9,3 @@ pub mod domain;
 pub mod filter;
 pub mod infra;
 pub mod integration;
-pub mod payment;
-pub mod report;

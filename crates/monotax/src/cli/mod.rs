@@ -3,12 +3,10 @@ use std::path::PathBuf;
 use clap::{Parser, Subcommand, ValueEnum};
 
 use self::filter::FilterArgs;
-use self::payment::PaymentCommands;
 
 pub mod app;
 pub mod filter;
 pub mod handler;
-pub(super) mod payment;
 
 #[derive(Debug, Parser)]
 #[command(version, about, long_about)]
@@ -42,33 +40,6 @@ pub enum Command {
         #[command(flatten)]
         filter: FilterArgs,
     },
-    /// Generates quarterly tax report of incomes.
-    Report {
-        /// Input file to export. If specified, the database is ignored.
-        input: Option<PathBuf>,
-        #[clap(short, long)]
-        #[arg(value_enum)]
-        #[arg(value_enum, default_value_t)]
-        format: ReportFormat,
-        #[clap(short, long)]
-        output: Option<PathBuf>,
-        #[command(flatten)]
-        filter: FilterArgs,
-    },
-    /// Work with tax payments.
-    Payments {
-        #[clap(subcommand)]
-        command: PaymentCommands,
-    },
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, ValueEnum, Default)]
-pub enum ReportFormat {
-    /// Print report to console
-    #[default]
-    Console,
-    /// Export report to csv file
-    Csv,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, ValueEnum, Default)]
