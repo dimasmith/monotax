@@ -1128,18 +1128,11 @@ dependencies = [
  "async-trait",
  "chrono",
  "clap",
- "config",
  "csv",
- "directories",
- "dotenvy",
  "encoding_rs",
  "encoding_rs_rw",
- "env_logger",
  "log",
  "serde",
- "sqlx",
- "tokio",
- "toml",
  "uuid",
 ]
 
