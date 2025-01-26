@@ -1,10 +1,8 @@
-use clap::Args;
+use clap::{Args, ValueEnum};
 use monotax_core::domain::filter::income::{
     IncomeCriteria, IncomeCriterion, QuarterFilter, YearFilter,
 };
 use monotax_core::domain::Quarter;
-
-use crate::cli::{IncludeQuarters, IncludeYears};
 
 #[derive(Debug, Args, Clone)]
 pub struct FilterArgs {
@@ -25,6 +23,22 @@ pub struct FilterArgs {
     #[clap(short, long)]
     #[arg(value_enum)]
     pub year: Option<i32>,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, ValueEnum, Default)]
+pub enum IncludeQuarters {
+    #[default]
+    Any,
+    One,
+    Ytd,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, ValueEnum, Default)]
+pub enum IncludeYears {
+    All,
+    One,
+    #[default]
+    Current,
 }
 
 impl FilterArgs {
