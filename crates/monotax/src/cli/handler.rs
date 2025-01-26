@@ -6,13 +6,14 @@ use anyhow::Context;
 use tokio::task::block_in_place;
 
 use monotax_core::app::tax::mark_income_paid;
-use monotax_core::config;
 use monotax_core::domain::repository::{IncomeRepository, PaymentRepository, TaxPaymentRepository};
 use monotax_core::domain::Income;
 use monotax_core::infra::io::writer;
 use monotax_core::integration::{taxer, universalbank};
 use monotax_core::payment::report::{plaintext::plaintext_report, PaymentReport};
 use monotax_core::report::{self, QuarterlyReport};
+
+use crate::config;
 
 use super::{filter::FilterArgs, ReportFormat};
 

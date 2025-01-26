@@ -1,9 +1,10 @@
+use crate::criteria::SqlxCriterion;
+
 use super::record::IncomeRecord;
-use crate::domain::filter::income::IncomeCriterion;
-use crate::domain::Income;
-use crate::domain::{filter::income::IncomeCriteria, repository::IncomeRepository};
-use crate::infra::sqlx::criteria::SqlxCriterion;
 use async_trait::async_trait;
+use monotax_core::domain::filter::income::{IncomeCriteria, IncomeCriterion};
+use monotax_core::domain::repository::IncomeRepository;
+use monotax_core::domain::Income;
 use sqlx::{QueryBuilder, Sqlite, SqlitePool};
 
 pub struct SqlxIncomeRepository {

@@ -5,11 +5,9 @@
 //! The central concept of Monotax is an income. An income is a record of money received by a person.
 
 pub mod app;
-pub mod config;
 pub mod domain;
 pub mod filter;
 pub mod infra;
-pub mod init;
 pub mod integration;
 pub mod payment;
 pub mod report;

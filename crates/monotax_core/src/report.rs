@@ -2,7 +2,7 @@
 
 use chrono::{Datelike, NaiveDate};
 
-use crate::config::TaxConfig;
+use crate::domain::config::TaxConfig;
 use crate::domain::Income;
 use crate::domain::Quarter;
 
