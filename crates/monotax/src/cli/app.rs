@@ -2,9 +2,9 @@
 
 use sqlx::SqlitePool;
 
-use crate::config::Configuration;
-use crate::infra::sqlx::{income_repository, payment_repository, payment_tax_repository};
-use crate::init;
+use monotax_core::config::Configuration;
+use monotax_core::infra::sqlx::{income_repository, payment_repository, payment_tax_repository};
+use monotax_core::init;
 
 use super::handler::*;
 use super::payment::PaymentCommands;
