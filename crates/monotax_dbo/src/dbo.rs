@@ -9,13 +9,15 @@ use csv::StringRecord;
 use encoding_rs::WINDOWS_1251;
 use encoding_rs_rw::DecodingReader;
 
-use crate::domain::Income;
-use crate::filter::IncomePredicate;
+use monotax_core::domain::Income;
+use monotax_core::filter::IncomePredicate;
 
 const DATE_COLUMN: usize = 4;
 const AMOUNT_COLUMN: usize = 14;
 const DESCRIPTION_COLUMN: usize = 15;
 
+/// Reads incomes from DBOsoft-compatible CSV files.
+/// The filter allows to pick incomes for particular date range.
 pub fn read_incomes<R>(reader: R, filter: impl IncomePredicate) -> anyhow::Result<Vec<Income>>
 where
     R: Read,

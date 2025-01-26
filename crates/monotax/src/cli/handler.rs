@@ -3,13 +3,14 @@
 use std::{fs::File, path::Path};
 
 use anyhow::Context;
+use monotax_dbo::dbo;
 use tokio::task::block_in_place;
 
 use monotax_core::app::tax::mark_income_paid;
 use monotax_core::domain::repository::{IncomeRepository, PaymentRepository, TaxPaymentRepository};
 use monotax_core::domain::Income;
 use monotax_core::infra::io::writer;
-use monotax_core::integration::{taxer, universalbank};
+use monotax_core::integration::taxer;
 use monotax_core::payment::report::{plaintext::plaintext_report, PaymentReport};
 use monotax_core::report::{self, QuarterlyReport};
 
@@ -56,7 +57,7 @@ pub async fn generate_incomes_report(
     filter: &FilterArgs,
 ) -> anyhow::Result<()> {
     let config = config::load_config()?;
-    let incomes = read_incomes(income_repo, input, filter).await?;
+    let incomes = read_dbo_incomes(income_repo, input, filter).await?;
     let report = QuarterlyReport::build_report(incomes, config.tax());
     let writer = writer(output)?;
     match format {
@@ -73,18 +74,18 @@ pub async fn generate_taxer_report(
     filter: &FilterArgs,
 ) -> anyhow::Result<()> {
     let config = config::load_config()?;
-    let incomes = read_incomes(income_repo, input, filter).await?;
+    let incomes = read_dbo_incomes(income_repo, input, filter).await?;
     let writer = writer(output)?;
     taxer::export_csv(incomes, config.taxer(), writer)?;
     Ok(())
 }
 
-pub async fn import_incomes(
+pub async fn import_incomes_from_dbo_csv(
     income_repo: &mut impl IncomeRepository,
     statement: &Path,
     filter: &FilterArgs,
 ) -> anyhow::Result<()> {
-    let incomes = read_incomes(income_repo, Some(statement), filter).await?;
+    let incomes = read_dbo_incomes(income_repo, Some(statement), filter).await?;
     let imported = income_repo
         .save_all(&incomes.into_iter().collect::<Vec<_>>())
         .await?;
@@ -92,7 +93,7 @@ pub async fn import_incomes(
     Ok(())
 }
 
-pub async fn read_incomes(
+pub async fn read_dbo_incomes(
     income_repo: &mut impl IncomeRepository,
     input: Option<&Path>,
     filter: &FilterArgs,
@@ -100,7 +101,7 @@ pub async fn read_incomes(
     let incomes = match input {
         Some(stmt) => block_in_place(move || {
             let file = File::open(stmt).context("opening input file")?;
-            universalbank::read_incomes(file, filter.criteria())
+            dbo::read_incomes(file, filter.criteria())
         })?,
         None => income_repo.find_all().await?,
     };

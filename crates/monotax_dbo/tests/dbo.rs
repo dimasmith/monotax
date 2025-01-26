@@ -6,7 +6,7 @@ use chrono::NaiveDateTime;
 use monotax_core::domain::filter::income::{IncomeCriteria, IncomeCriterion, QuarterFilter};
 use monotax_core::domain::Income;
 use monotax_core::domain::Quarter;
-use monotax_core::integration::universalbank;
+use monotax_dbo::dbo;
 
 fn income(date: &str, amount: f64) -> Income {
     let income_date = NaiveDateTime::parse_from_str(date, "%d.%m.%Y %H:%M:%S").unwrap();
@@ -17,7 +17,7 @@ fn income(date: &str, amount: f64) -> Income {
 fn import_all_from_csv() {
     let balance_file = File::open("tests/test_files/balance.csv").unwrap();
     let allow_all_filter = IncomeCriteria::new(&[]);
-    let incomes = universalbank::read_incomes(balance_file, allow_all_filter).unwrap();
+    let incomes = dbo::read_incomes(balance_file, allow_all_filter).unwrap();
 
     assert_eq!(4, incomes.len());
     assert_eq!(
@@ -36,7 +36,7 @@ fn import_one_quarter_from_csv() {
     let balance_file = File::open("tests/test_files/balance.csv").unwrap();
     let quarter_filter =
         IncomeCriteria::new(&[IncomeCriterion::Quarter(QuarterFilter::Only(Quarter::Q1))]);
-    let incomes = universalbank::read_incomes(balance_file, quarter_filter).unwrap();
+    let incomes = dbo::read_incomes(balance_file, quarter_filter).unwrap();
 
     assert_eq!(3, incomes.len());
     assert_eq!(
