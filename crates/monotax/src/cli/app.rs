@@ -7,8 +7,8 @@ use crate::config::Configuration;
 use crate::init::init;
 
 use super::handler::*;
+use super::opts::Command;
 use super::Cli;
-use super::Command;
 
 /// Runs a CLI command.
 pub async fn run_cli_command(
