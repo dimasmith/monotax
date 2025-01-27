@@ -9,3 +9,4 @@ pub mod domain;
 pub mod filter;
 pub mod infra;
 pub mod integration;
+pub mod report;

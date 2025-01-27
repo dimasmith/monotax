@@ -2,7 +2,7 @@ use std::path::PathBuf;
 
 use clap::{Parser, Subcommand};
 
-use super::{filter::FilterArgs, income::IncomeCommands};
+use super::{filter::FilterArgs, income::IncomeCommands, report::ReportCommands};
 
 #[derive(Debug, Parser)]
 #[command(version, about, long_about)]
@@ -23,6 +23,11 @@ pub enum Command {
     Incomes {
         #[clap(subcommand)]
         command: IncomeCommands,
+    },
+    /// Generate reports
+    Reports {
+        #[clap(subcommand)]
+        command: ReportCommands,
     },
     /// Export statement csv to taxer csv
     Taxer {
