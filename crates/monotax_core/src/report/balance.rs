@@ -1,6 +1,9 @@
 use chrono::NaiveDate;
 
-use crate::domain::{model::income_tax::IncomeTax, Income};
+use crate::domain::{
+    model::{income::Amount, income_tax::IncomeTax},
+    Income,
+};
 
 #[derive(Debug)]
 pub struct BalanceReport {
@@ -9,7 +12,7 @@ pub struct BalanceReport {
 
 #[derive(Debug)]
 pub struct IncomeRow {
-    amount: f64,
+    amount: Amount,
     date: NaiveDate,
     obligations: Vec<IncomeTaxObligation>,
 }
@@ -17,7 +20,7 @@ pub struct IncomeRow {
 #[derive(Debug)]
 pub struct IncomeTaxObligation {
     name: String,
-    obligation: f64,
+    obligation: Amount,
 }
 
 impl BalanceReport {
@@ -33,13 +36,11 @@ impl BalanceReport {
                     IncomeTaxObligation::new(tax.name().to_string(), obligation)
                 })
                 .collect::<Vec<_>>();
-                
+
             income_obligations.push(IncomeRow::new(income_amount, income_date, obligations));
         }
         Self { income_obligations }
     }
-
-
 
     pub fn income_obligations(&self) -> &Vec<IncomeRow> {
         &self.income_obligations
@@ -47,7 +48,7 @@ impl BalanceReport {
 }
 
 impl IncomeRow {
-    pub fn new(amount: f64, date: NaiveDate, obligations: Vec<IncomeTaxObligation>) -> Self {
+    pub fn new(amount: Amount, date: NaiveDate, obligations: Vec<IncomeTaxObligation>) -> Self {
         Self {
             amount,
             date,
@@ -55,7 +56,7 @@ impl IncomeRow {
         }
     }
 
-    pub fn amount(&self) -> f64 {
+    pub fn amount(&self) -> Amount {
         self.amount
     }
 
@@ -67,13 +68,13 @@ impl IncomeRow {
         &self.obligations
     }
 
-    pub fn total_obligations(&self) -> f64 {
+    pub fn total_obligations(&self) -> Amount {
         self.obligations.iter().map(|t| t.obligation).sum()
     }
 }
 
 impl IncomeTaxObligation {
-    pub fn new(name: String, obligation: f64) -> Self {
+    pub fn new(name: String, obligation: Amount) -> Self {
         Self { name, obligation }
     }
 
@@ -81,7 +82,7 @@ impl IncomeTaxObligation {
         &self.name
     }
 
-    pub fn obligation(&self) -> f64 {
+    pub fn obligation(&self) -> Amount {
         self.obligation
     }
 }

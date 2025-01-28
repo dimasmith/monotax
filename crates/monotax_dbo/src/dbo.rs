@@ -9,6 +9,7 @@ use csv::StringRecord;
 use encoding_rs::WINDOWS_1251;
 use encoding_rs_rw::DecodingReader;
 
+use monotax_core::domain::model::income::Amount;
 use monotax_core::domain::Income;
 use monotax_core::filter::IncomePredicate;
 
@@ -52,5 +53,6 @@ fn income_from_csv(record: &StringRecord) -> anyhow::Result<Income> {
     let date =
         NaiveDateTime::parse_from_str(date, "%d.%m.%Y %H:%M:%S").context("failed to parse date")?;
     let amount = amount.parse().context("failed to parse amount")?;
+    let amount = Amount::new(amount)?;
     Ok(Income::new(date, amount).with_comment(comment.to_string()))
 }

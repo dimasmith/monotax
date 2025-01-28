@@ -135,8 +135,8 @@ mod tests {
         assert!(matches!(Quarter::try_from(2), Ok(Quarter::Q2)));
         assert!(matches!(Quarter::try_from(3), Ok(Quarter::Q3)));
         assert!(matches!(Quarter::try_from(4), Ok(Quarter::Q4)));
-        assert!(matches!(Quarter::try_from(0), Err(_)));
-        assert!(matches!(Quarter::try_from(5), Err(_)));
+        assert!(Quarter::try_from(0).is_err());
+        assert!(Quarter::try_from(5).is_err());
     }
 
     #[test]

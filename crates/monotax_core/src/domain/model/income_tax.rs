@@ -1,9 +1,13 @@
 //! Taxes that are dependent on incomes.
 
+use std::ops::Mul;
+
 use anyhow::Result;
 use chrono::NaiveDate;
 use thiserror::Error;
 use uuid::Uuid;
+
+use super::income::Amount;
 
 pub type TaxID = Uuid;
 
@@ -47,12 +51,12 @@ impl IncomeTax {
         Self { id, name, rates }
     }
 
-    pub fn calculate_obligation(&self, income_amount: f64, income_date: NaiveDate) -> f64 {
+    pub fn calculate_obligation(&self, income_amount: Amount, income_date: NaiveDate) -> Amount {
         self.rates
             .iter()
             .rfind(|rate| rate.is_applicable(income_date))
             .map(|rate| rate.calculate_obligation(income_amount, income_date))
-            .unwrap_or(0.0)
+            .unwrap_or(Amount::ZERO)
     }
 
     pub fn add_rate_unchecked(&mut self, start_date: NaiveDate, end_date: NaiveDate, rate: f64) {
@@ -92,13 +96,12 @@ impl IncomeTaxRate {
         date >= self.start && date < self.end
     }
 
-    fn calculate_obligation(&self, income_amount: f64, income_date: NaiveDate) -> f64 {
-        let rate = if self.is_applicable(income_date) {
-            self.rate.rate()
+    fn calculate_obligation(&self, income_amount: Amount, income_date: NaiveDate) -> Amount {
+        if self.is_applicable(income_date) {
+            income_amount * self.rate
         } else {
-            0.0
-        };
-        income_amount * rate
+            Amount::ZERO
+        }
     }
 }
 
@@ -147,12 +150,23 @@ impl AsRef<f64> for TaxRate {
     }
 }
 
+impl Mul<TaxRate> for Amount {
+    type Output = Amount;
+
+    fn mul(self, rhs: TaxRate) -> Self::Output {
+        let raw = self.amount() * rhs.rate();
+        // it's safe to unwrap because tax rate is not larger than 1.0,
+        // so the result won't ever be higher than the original amount.
+        Amount::new(raw).unwrap()
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
 
     mod tax_rate {
-        use super::TaxRate;
+        use super::{Amount, TaxRate};
 
         #[test]
         fn accept_valid_tax_rates() {
@@ -181,6 +195,16 @@ mod tests {
             assert!(low_rate < mid_rate);
             assert!(mid_rate > low_rate);
             assert!(mid_rate == another_mid_rate);
+        }
+
+        #[test]
+        fn calculate_tax_amount() {
+            let income_amount = Amount::new(250.0).unwrap();
+            let tax_rate = TaxRate::new(0.05).unwrap();
+
+            let tax_amount = income_amount * tax_rate;
+
+            assert_eq!(tax_amount, Amount::new(12.5).unwrap());
         }
     }
 

@@ -1,6 +1,6 @@
 use async_trait::async_trait;
 use chrono::{Duration, NaiveDate, Utc};
-use monotax_core::domain::model::income_tax::{self, IncomeTax};
+use monotax_core::domain::model::income_tax::IncomeTax;
 use monotax_core::domain::repository::income_tax::IncomeTaxRepository;
 use sqlx::SqlitePool;
 

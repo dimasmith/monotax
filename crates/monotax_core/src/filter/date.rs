@@ -60,7 +60,7 @@ mod tests {
         let q2_date = NaiveDate::from_ymd_opt(2024, 4, 1).unwrap();
         let q3_date = NaiveDate::from_ymd_opt(2024, 7, 1).unwrap();
         let q4_date = NaiveDate::from_ymd_opt(2024, 12, 31).unwrap();
-        let dates = vec![q1_date, q2_date, q3_date, q4_date];
+        let dates = [q1_date, q2_date, q3_date, q4_date];
 
         let filtered = dates
             .iter()
@@ -83,7 +83,7 @@ mod tests {
         let q2_date = NaiveDate::from_ymd_opt(2024, 4, 1).unwrap();
         let q3_date = NaiveDate::from_ymd_opt(2024, 7, 1).unwrap();
         let q4_date = NaiveDate::from_ymd_opt(2024, 12, 31).unwrap();
-        let dates = vec![q1_date, q2_date, q3_date, q4_date];
+        let dates = [q1_date, q2_date, q3_date, q4_date];
 
         let filtered = dates
             .iter()

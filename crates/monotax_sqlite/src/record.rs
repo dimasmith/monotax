@@ -1,7 +1,7 @@
 use chrono::{Datelike, NaiveDateTime};
 use sqlx::prelude::FromRow;
 
-use monotax_core::domain::{Income, Quarter};
+use monotax_core::domain::{model::income::Amount, Income, Quarter};
 #[derive(Debug, Clone, FromRow)]
 pub struct IncomeRecord {
     pub date: NaiveDateTime,
@@ -15,7 +15,8 @@ pub struct IncomeRecord {
 
 impl From<IncomeRecord> for Income {
     fn from(record: IncomeRecord) -> Self {
-        Income::new(record.date, record.amount).with_no(record.payment_no)
+        let amount = Amount::new(record.amount).unwrap();
+        Income::new(record.date, amount).with_no(record.payment_no)
     }
 }
 
@@ -24,7 +25,7 @@ impl From<&Income> for IncomeRecord {
         let quarter = Quarter::from(&value.datetime()).index();
         Self {
             date: value.datetime(),
-            amount: value.amount(),
+            amount: value.amount().amount(),
             payment_no: value.income_no(),
             description: value.comment().map(|s| s.to_string()),
             year: value.datetime().year() as u16,

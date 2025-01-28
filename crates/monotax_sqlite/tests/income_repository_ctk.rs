@@ -3,13 +3,14 @@ use monotax_core::domain::filter::income::IncomeCriteria;
 use monotax_core::domain::filter::income::IncomeCriterion;
 use monotax_core::domain::filter::income::QuarterFilter;
 use monotax_core::domain::filter::income::YearFilter;
+use monotax_core::domain::model::income::Amount;
 use monotax_core::domain::repository::IncomeRepository;
 use monotax_core::domain::Income;
 use monotax_core::domain::Quarter;
 
 fn income(datetime: &str, amount: f64) -> Income {
     let datetime = NaiveDateTime::parse_from_str(datetime, "%Y-%m-%d %H:%M:%S").unwrap();
-    Income::new(datetime, amount)
+    Income::new(datetime, Amount::new(amount).unwrap())
 }
 
 pub async fn test_save_and_load_incomes(repo: &mut impl IncomeRepository) {

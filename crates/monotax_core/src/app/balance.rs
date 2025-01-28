@@ -1,6 +1,6 @@
-use crate::domain::repository::IncomeRepository;
-use crate::domain::repository::income_tax::IncomeTaxRepository;
 use crate::domain::filter::income::IncomeCriteria;
+use crate::domain::repository::income_tax::IncomeTaxRepository;
+use crate::domain::repository::IncomeRepository;
 use crate::report::balance::BalanceReport;
 
 pub async fn generate_balance_report(
