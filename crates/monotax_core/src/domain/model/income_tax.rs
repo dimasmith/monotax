@@ -20,8 +20,7 @@ pub struct IncomeTax {
 
 #[derive(Debug)]
 pub struct IncomeTaxRate {
-    start: NaiveDate,
-    end: NaiveDate,
+    period: Period,
     rate: TaxRate,
 }
 
@@ -39,6 +38,17 @@ pub struct TaxRate(f64);
 #[error("rate {invalid_rate} is outside of allowed values")]
 pub struct TaxRateError {
     pub invalid_rate: f64,
+}
+
+#[derive(Debug)]
+enum Period {
+    Open {
+        start_date: NaiveDate,
+    },
+    Closed {
+        start_date: NaiveDate,
+        end_date: NaiveDate,
+    },
 }
 
 impl IncomeTax {
@@ -59,8 +69,12 @@ impl IncomeTax {
             .unwrap_or(Amount::ZERO)
     }
 
+    pub fn add_rate(&mut self, rate: IncomeTaxRate) {
+        self.rates.push(rate);
+    }
+
     pub fn add_rate_unchecked(&mut self, start_date: NaiveDate, end_date: NaiveDate, rate: f64) {
-        let period_rate = IncomeTaxRate::new(start_date, end_date, TaxRate(rate)).unwrap();
+        let period_rate = IncomeTaxRate::closed(start_date, end_date, TaxRate(rate)).unwrap();
         self.rates.push(period_rate);
     }
 
@@ -74,26 +88,24 @@ impl IncomeTax {
 }
 
 impl IncomeTaxRate {
-    pub fn new(
+    pub fn open(start_date: NaiveDate, rate: TaxRate) -> Self {
+        Self {
+            period: Period::open(start_date),
+            rate,
+        }
+    }
+
+    pub fn closed(
         start_date: NaiveDate,
         end_date: NaiveDate,
         rate: TaxRate,
     ) -> Result<Self, IcorrectTaxRateDatesError> {
-        if end_date <= start_date {
-            return Err(IcorrectTaxRateDatesError {
-                start_date,
-                end_date,
-            });
-        }
-        Ok(Self {
-            start: start_date,
-            end: end_date,
-            rate,
-        })
+        let period = Period::closed(start_date, end_date)?;
+        Ok(Self { period, rate })
     }
 
     fn is_applicable(&self, date: NaiveDate) -> bool {
-        date >= self.start && date < self.end
+        self.period.contains(&date)
     }
 
     fn calculate_obligation(&self, income_amount: Amount, income_date: NaiveDate) -> Amount {
@@ -158,6 +170,38 @@ impl Mul<TaxRate> for Amount {
         // it's safe to unwrap because tax rate is not larger than 1.0,
         // so the result won't ever be higher than the original amount.
         Amount::new(raw).unwrap()
+    }
+}
+
+impl Period {
+    pub fn open(start_date: NaiveDate) -> Self {
+        Period::Open { start_date }
+    }
+
+    pub fn closed(
+        start_date: NaiveDate,
+        end_date: NaiveDate,
+    ) -> Result<Self, IcorrectTaxRateDatesError> {
+        if end_date <= start_date {
+            return Err(IcorrectTaxRateDatesError {
+                start_date,
+                end_date,
+            });
+        }
+        Ok(Period::Closed {
+            start_date,
+            end_date,
+        })
+    }
+
+    fn contains(&self, date: &NaiveDate) -> bool {
+        match self {
+            Period::Open { start_date } => date >= start_date,
+            Period::Closed {
+                start_date,
+                end_date,
+            } => date >= start_date && date < end_date,
+        }
     }
 }
 
@@ -227,8 +271,8 @@ mod tests {
             let next_day = date(2008, 1, 2);
             let end = date(2024, 5, 12);
 
-            assert!(IncomeTaxRate::new(start, end, valid_rate()).is_ok());
-            assert!(IncomeTaxRate::new(start, next_day, valid_rate()).is_ok());
+            assert!(IncomeTaxRate::closed(start, end, valid_rate()).is_ok());
+            assert!(IncomeTaxRate::closed(start, next_day, valid_rate()).is_ok());
         }
 
         #[test]
@@ -236,11 +280,11 @@ mod tests {
             let early = date(2008, 1, 1);
             let late = date(2024, 5, 12);
             assert!(
-                IncomeTaxRate::new(late, early, valid_rate()).is_err(),
+                IncomeTaxRate::closed(late, early, valid_rate()).is_err(),
                 "the end date can't be before the start date"
             );
             assert!(
-                IncomeTaxRate::new(late, late, valid_rate()).is_err(),
+                IncomeTaxRate::closed(late, late, valid_rate()).is_err(),
                 "the end date can't be the same as a start date"
             );
         }

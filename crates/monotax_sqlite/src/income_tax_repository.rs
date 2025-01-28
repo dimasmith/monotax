@@ -1,6 +1,6 @@
 use async_trait::async_trait;
-use chrono::{Duration, NaiveDate, Utc};
-use monotax_core::domain::model::income_tax::IncomeTax;
+use chrono::NaiveDate;
+use monotax_core::domain::model::income_tax::{IncomeTax, IncomeTaxRate, TaxRate};
 use monotax_core::domain::repository::income_tax::IncomeTaxRepository;
 use sqlx::SqlitePool;
 
@@ -68,12 +68,21 @@ impl IncomeTaxRepository for SqlxIncomeTaxRepository {
             rate_recs.windows(2).for_each(|rates| {
                 let earlier = rates[0];
                 let later = rates[1];
-                income_tax.add_rate_unchecked(earlier.start_date, later.start_date, earlier.rate)
+                let rate = IncomeTaxRate::closed(
+                    earlier.start_date,
+                    later.start_date,
+                    TaxRate::new(earlier.rate).unwrap(),
+                )
+                .unwrap();
+                income_tax.add_rate(rate);
             });
 
             let last_record = rate_recs.last().unwrap();
-            let end_date = Utc::now().date_naive() + Duration::days(3650);
-            income_tax.add_rate_unchecked(last_record.start_date, end_date, last_record.rate);
+            let rate = IncomeTaxRate::open(
+                last_record.start_date,
+                TaxRate::new(last_record.rate).unwrap(),
+            );
+            income_tax.add_rate(rate);
         }
 
         Ok(taxes)
