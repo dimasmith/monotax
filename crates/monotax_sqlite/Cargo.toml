@@ -10,7 +10,7 @@ anyhow = "1.0.95"
 async-trait = "0.1.81"
 chrono = "0.4"
 serde = { version = "1", features = ["derive"] }
-sqlx = { version = "0.7", features = [
+sqlx = { version = "0.8", features = [
   "macros",
   "sqlite",
   "runtime-tokio",
