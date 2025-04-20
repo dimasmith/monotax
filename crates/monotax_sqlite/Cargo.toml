@@ -17,6 +17,6 @@ sqlx = { version = "0.8", features = [
   "chrono",
 ] }
 
-[dev_dependencies]
+[dev-dependencies]
 tokio = { version = "1", features = ["rt", "rt-multi-thread", "macros"] }
 uuid = { version = "1.9.1", features = ["v4"] }
