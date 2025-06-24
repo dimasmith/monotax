@@ -16,6 +16,7 @@ pub enum Quarter {
 }
 
 impl Quarter {
+    /// Returns the current quarter based on the local date and time.
     pub fn current() -> Self {
         let date = Local::now().naive_local();
         Quarter::from(&date)
